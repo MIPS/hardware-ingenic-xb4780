@@ -84,6 +84,8 @@ static float lsg = 64.0f;
 
 #define SENSOR_STATE_MASK           (0x7FFF)
 
+static uint32_t sensors_get_list(struct sensors_module_t* module,struct sensor_t const** list);
+
 /*****************************************************************************/
 
 struct sensors_context_t {
@@ -260,6 +262,9 @@ static int open_con_fds(struct sensors_context_t* dev)
 	int i,j,fd,count;
 	char name[256];
 
+	/* populate sensors_list */
+	(void) sensors_get_list(NULL, NULL);
+
 	for(i = 0,count = 0;i < SENSORS_COUNT;i++) {
 		memset(name,0,256);
 		sprintf(name,"/dev/%s",sensor_device_names[i]);
@@ -372,7 +377,8 @@ static uint32_t sensors_get_list(struct sensors_module_t* module,struct sensor_t
 	struct linux_sensor_t sensor_tmp;
 
 	if(count != 0) {
-		*list = sensors_list;
+		if (list)
+			*list = sensors_list;
 		return count;
 	}
 
@@ -434,7 +440,8 @@ static uint32_t sensors_get_list(struct sensors_module_t* module,struct sensor_t
 		count ++;
 	}
 
-	*list = sensors_list;
+	if (list)
+		*list = sensors_list;
 	return count; 
 }
 
