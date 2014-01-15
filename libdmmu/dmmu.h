@@ -20,6 +20,13 @@ __BEGIN_DECLS
 
 #define VIDEO_TABLE_FLAGE 1
 
+enum {
+    HAL_PIXEL_FORMAT_BGRX_8888      = 0x1ff,
+    /* suport for YUV420 */
+    HAL_PIXEL_FORMAT_JZ_YUV_420_P       = 0x47700001, // YUV_420_P
+    HAL_PIXEL_FORMAT_JZ_YUV_420_B       = 0x47700002, // YUV_420_P BLOCK MODE
+};
+
 struct dmmu_mem_info {
 	int size;
 	int page_count;

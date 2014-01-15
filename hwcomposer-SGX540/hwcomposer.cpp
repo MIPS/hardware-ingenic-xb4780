@@ -11,6 +11,8 @@
 #include <linux/fb.h>
 #include <sys/mman.h>
 
+#define LOG_TAG "HWC-JZX2D"
+
 #include <cutils/properties.h>
 #include <cutils/log.h>
 #include <cutils/native_handle.h>
@@ -30,6 +32,11 @@
 #include "gralloc_priv.h"
 #include "dmmu.h"
 #include "hwcomposer.h"
+
+#ifdef ANDROID
+#undef ANDROID                             /* ANDROID will be also defined by config.h */
+#endif
+#include "config.h"                        /* Config #defines are required for hal_public.h */
 #include "hal_public.h"
 
 #define X2DNAME "/dev/x2d"
@@ -50,8 +57,6 @@
 #undef LOGD
 #define LOGD //
 #endif
-
-#define LOG_TAG "HWC-JZX2D"
 
 //#define SUPPORT_GLOBAL_ALPHA
 

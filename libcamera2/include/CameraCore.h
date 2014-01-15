@@ -44,6 +44,11 @@
 #undef PAGE_SIZE
 #include "dmmu.h"
 #include "android_jz_ipu.h"
+
+#ifdef ANDROID
+#undef ANDROID                             /* ANDROID will be also defined by config.h */
+#endif
+#include "config.h"
 #include "hal_public.h"
 #include "hwcomposer.h"
 

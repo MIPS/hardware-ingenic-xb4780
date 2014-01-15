@@ -70,7 +70,8 @@ typedef struct
 	 */
 	int fd[MAX_SUB_ALLOCS];
 
-#define IMG_NATIVE_HANDLE_NUMINTS ((sizeof(unsigned long long) / sizeof(int)) + 6)
+#define IMG_NATIVE_HANDLE_NUMINTS \
+	((sizeof(unsigned long long) / sizeof(int)) + 6 + MAX_SUB_ALLOCS + 1)
 	/* A KERNEL unique identifier for any exported kernel meminfo. Each
 	 * exported kernel meminfo will have a unique stamp, but note that in
 	 * userspace, several meminfos across multiple processes could have
@@ -87,17 +88,24 @@ typedef struct
 	/* In order to do efficient cache flushes we need the buffer dimensions
 	 * and format. These are available on the ANativeWindowBuffer,
 	 * but the platform doesn't pass them down to the graphics HAL.
-	 *
-	 * These fields are also used in the composition bypass. In this
-	 * capacity, these are the "real" values for the backing allocation.
 	 */
 	int iWidth;
 	int iHeight;
 	int iFormat;
 	unsigned int uiBpp;
+
+	/* The ion allocation path doesn't allow for the allocation size and
+	 * mapping flags to be communicated cross-process automatically.
+	 * Cache these here so we can map buffers in client processes.
+	 */
+	unsigned int uiAllocSize[MAX_SUB_ALLOCS];
+	unsigned int uiFlags;
+
 	int iStride;
 }
 __attribute__((aligned(sizeof(int)),packed)) IMG_native_handle_t;
+
+#if defined(SUPPORT_ANDROID_FRAMEBUFFER_HAL)
 
 typedef struct
 {
@@ -112,36 +120,17 @@ typedef struct
 }
 IMG_framebuffer_device_public_t;
 
-typedef struct IMG_gralloc_module_public_t
-{
-	gralloc_module_t base;
-
-	/* If the framebuffer has been opened, this will point to the
-	 * framebuffer device data required by the allocator, WSEGL
-	 * modules and composerhal.
-	 */
-	IMG_framebuffer_device_public_t *psFrameBufferDevice;
-
-	int (*GetPhyAddrs)(struct IMG_gralloc_module_public_t const* module,
-					   buffer_handle_t handle,
-					   unsigned int auiPhyAddr[MAX_SUB_ALLOCS]);
-
-	/* Custom-blit components in lieu of overlay hardware */
-	int (*Blit)(struct IMG_gralloc_module_public_t const *module,
-				buffer_handle_t src,
-				void *dest[MAX_SUB_ALLOCS], int format);
-
-	int (*Blit2)(struct IMG_gralloc_module_public_t const *module,
-				 buffer_handle_t src, buffer_handle_t dest,
-				 int w, int h, int x, int y);
-}
-IMG_gralloc_module_public_t;
+#endif /* defined(SUPPORT_ANDROID_FRAMEBUFFER_HAL) */
 
 typedef struct
 {
 	int l, t, w, h;
 }
 IMG_write_lock_rect_t;
+
+typedef int (*IMG_buffer_format_compute_params_pfn)(
+	unsigned int uiPlane, int *piWidth, int *piHeight,
+	int *piStride, int *piVStride, unsigned long *pulPlaneOffset);
 
 typedef struct IMG_buffer_format_public_t
 {
@@ -160,9 +149,52 @@ typedef struct IMG_buffer_format_public_t
 	/* Bits (not bytes) per pixel */
 	unsigned int uiBpp;
 
-	/* GPU output format (creates EGLConfig for format) */
-	int bGPURenderable;
+	/* Supported HW usage bits. If this is GRALLOC_USAGE_HW_MASK, all usages
+	 * are supported. Used for HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED.
+	 */
+	int iSupportedUsage;
+
+	/* YUV output format */
+	int bIsYUVFormat;
+
+	/* Utility function for adjusting YUV per-plane parameters */
+	IMG_buffer_format_compute_params_pfn pfnComputeParams;
 }
 IMG_buffer_format_public_t;
+
+typedef struct IMG_gralloc_module_public_t
+{
+	gralloc_module_t base;
+
+#if defined(SUPPORT_ANDROID_FRAMEBUFFER_HAL)
+	/* If the framebuffer has been opened, this will point to the
+	 * framebuffer device data required by the allocator, WSEGL
+	 * modules and composerhal.
+	 */
+	IMG_framebuffer_device_public_t *psFrameBufferDevice;
+#endif /* defined(SUPPORT_ANDROID_FRAMEBUFFER_HAL) */
+
+	/* This function is deprecated and might be NULL. Do not use it. */
+	int (*GetPhyAddrs)(gralloc_module_t const* module,
+					   buffer_handle_t handle, void **ppvPhyAddr);
+
+	/* Obtain HAL's registered format list */
+	const IMG_buffer_format_public_t *(*GetBufferFormats)(void);
+
+	/* Custom-blit components in lieu of overlay hardware */
+	int (*Blit)(struct IMG_gralloc_module_public_t const *module,
+				buffer_handle_t src,
+				void *dest[MAX_SUB_ALLOCS], int format);
+
+	int (*Blit2)(struct IMG_gralloc_module_public_t const *module,
+				 buffer_handle_t src, buffer_handle_t dest,
+				 int w, int h, int x, int y);
+
+	int (*Blit3)(struct IMG_gralloc_module_public_t const *module,
+				 unsigned long long ui64SrcStamp,
+				 unsigned long long ui64DestStamp,
+				 int eSrcRotation, int eDestRotation);
+}
+IMG_gralloc_module_public_t;
 
 #endif /* HAL_PUBLIC_H */
