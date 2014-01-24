@@ -25,7 +25,9 @@
 #include <utils/Errors.h>
 #include <utils/String8.h>
 #include <utils/threads.h>
-#include <utils/WorkQueue.h>
+#ifdef CAMERA_VERSION1
+#include "WorkQueue.h"
+#endif
 #include <utils/List.h>
 #include <binder/IMemory.h>
 #include <binder/MemoryBase.h>

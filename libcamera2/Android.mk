@@ -21,6 +21,7 @@ LOCAL_C_INCLUDES += \
 	external/skia/include/core/ \
 	external/skia/include/images \
 	external/neven/FaceRecEm/common/src/b_FDSDK \
+	system/core/include \
 	frameworks/native/include \
 	frameworks/native/include/media/hardware \
 	frameworks/av/include \
@@ -57,6 +58,7 @@ LOCAL_SHARED_LIBRARIES:= \
 	libjzipu \
 
 LOCAL_CFLAGS += \
+	-Wno-non-virtual-dtor \
 	-DCIM_CAMERA \
 	-DCAMERA_INFO_MODULE=\"$(PRODUCT_MODEL)\" \
 	-DCAMERA_INFO_MANUFACTURER=\"$(PRODUCT_MANUFACTURER)\"
@@ -64,6 +66,7 @@ LOCAL_CFLAGS += \
 #camera version config
 ifeq ($(CAMERA_VERSION), 1)
 LOCAL_SRC_FILES += \
+	WorkQueue.cpp \
 	CameraHal1.cpp \
 	JZCameraParameters.cpp \
 

@@ -15,7 +15,7 @@
 #include <android/sensor.h>
 #include <gui/Sensor.h>
 #include <gui/SensorManager.h>
-#include <gui/SurfaceComposerClient.h>
+#include <gui/SensorEventQueue.h>
 #include <utils/Looper.h>
 
 namespace android {

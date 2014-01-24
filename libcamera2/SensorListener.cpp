@@ -35,19 +35,14 @@ namespace android {
     static int sensor_events_listener(int fd, int events, void* data) {
         SensorListener* listener = (SensorListener*) data;
         ASensorEvent sen_events;
-        status_t res;
+        size_t res;
         res = listener->mSensorEventQueue->read(&sen_events, 1);
-        if (res == 0) {
-            res = listener->mSensorEventQueue->waitForEvent();
-            if (res != NO_ERROR) {
-                ALOGE("%s; waitForEvent error",__FUNCTION__);
-                return -1;
-            }
-        }
 
-        if (res <= 0) {
-            ALOGE("%s: error",__FUNCTION__);
-            return -1;
+        if (res <=0) {
+            if (res < 0 && res != -EAGAIN) {
+                ALOGE("%s: error",__FUNCTION__);
+            }
+            return 1;
         }
 
         if (sen_events.sensor == listener->getRegisterHandle()) {
@@ -161,7 +156,8 @@ namespace android {
             sensor = mgr.getDefaultSensor(Sensor::TYPE_ACCELEROMETER);
             ALOGV("%s:name: %s, type: %d, handle: %d",__FUNCTION__,
                   sensor->getName().string(), sensor->getType(), sensor->getHandle());
-            mSensorEventQueue->enableSensor(sensor->getHandle(), 200000);
+            mSensorEventQueue->enableSensor(sensor);
+            mSensorEventQueue->setEventRate(sensor, ms2ns(200));
             sensorsEnabled |= SENSOR_ORIENTATION;
             mRegisterHandle = sensor->getHandle();
         }

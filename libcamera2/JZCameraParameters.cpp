@@ -121,9 +121,9 @@ namespace android {
 
     int JZCameraParameters::getPropertyValue(const char* property) {
 
-        char prop[16];
+        char prop[PROPERTY_VALUE_MAX];
 
-        memset(prop, 0, 16);
+        memset(prop, 0, PROPERTY_VALUE_MAX);
         if (property_get(property, prop, NULL) > 0) {
             char *prop_end = prop;
             int val = strtol(prop, &prop_end, 10);
@@ -1103,9 +1103,9 @@ namespace android {
         const char property1[] = "ro.board.camera.picture_upscale";
         const char property2[] = "ro.board.camera.upscale_id";
         bool ret = false;
-        char prop[16];
+        char prop[PROPERTY_VALUE_MAX];
 
-        memset(prop, 0, 16);
+        memset(prop, 0, PROPERTY_VALUE_MAX);
 
         if (property_get(property1, prop, NULL) > 0) {
             if (strcmp(prop,"true") == 0)
