@@ -32,7 +32,7 @@ LOCAL_C_INCLUDES += \
     hardware/libhardware/include \
 	hardware/ingenic/xb4780/libdmmu \
 	hardware/ingenic/xb4780/libjzipu \
-	hardware/ingenic/xb4780/hwcomposer-SGX540 \
+	hardware/ingenic/xb4780/libGPU \
 	hardware/ingenic/xb4780/include/media \
 	kernel/drivers/video
 

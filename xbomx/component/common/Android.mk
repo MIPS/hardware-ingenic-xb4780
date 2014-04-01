@@ -12,7 +12,7 @@ LOCAL_C_INCLUDES += \
         $(TOP)/frameworks/native/include/media/openmax \
 	$(TOP)/hardware/ingenic/xb4780/libdmmu \
 	$(TOP)/hardware/ingenic/xb4780/libjzipu \
-	$(TOP)/hardware/ingenic/xb4780/hwcomposer-SGX540 \
+	$(TOP)/hardware/ingenic/xb4780/libGPU \
         $(TOP)/hardware/ingenic/xb4780/xbomx/core
 
 LOCAL_SHARED_LIBRARIES :=               \
