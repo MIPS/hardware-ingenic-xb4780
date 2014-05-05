@@ -46,7 +46,6 @@ LOCAL_SHARED_LIBRARIES:= \
 	libbinder \
 	libcutils \
 	libutils \
-	libjpeg \
 	libexif \
 	liblog \
 	libcamera_client \
@@ -56,6 +55,12 @@ LOCAL_SHARED_LIBRARIES:= \
 	libdmmu \
 	libdl \
 	libjzipu \
+
+ifeq ($(USE_GMS_LIBS),true)
+	LOCAL_SHARED_LIBRARIES += libjpeg_old
+else
+	LOCAL_SHARED_LIBRARIES += libjpeg
+endif
 
 LOCAL_CFLAGS += \
 	-Wno-non-virtual-dtor \
