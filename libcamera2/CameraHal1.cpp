@@ -127,7 +127,8 @@ namespace android{
         mFocusThread.clear();
         mFocusThread = NULL;
         mModuleOpened = false;
-        delete CameraFaceDetect::getInstance();
+        // Just call the destructor, don't release the instance
+        CameraFaceDetect::getInstance()->~CameraFaceDetect();
     }
 
     void CameraHal1::update_device(CameraDeviceCommon* device) {

@@ -25,6 +25,7 @@ namespace android {
         :kClipMin(-278),
          kClipMax(535),
          mtmp_uv_size(0),
+         mClip(NULL),
          mtmp_uv(NULL),
          msrc(NULL),
          csY_coeff_16(1.164383 * (1 << 16)),
