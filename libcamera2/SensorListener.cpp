@@ -95,9 +95,15 @@ namespace android {
     }
 
     status_t SensorListener::initialize() {
-        status_t ret =  NO_ERROR;
+        status_t ret = NO_ERROR;
 
         SensorManager& mgr(SensorManager::getInstance());
+
+        if (mgr.getDefaultSensor(Sensor::TYPE_ACCELEROMETER) == NULL) {
+            ALOGI("%s: no orientation sensor available", __FUNCTION__);
+            ret = NO_INIT;
+            goto out;
+        }
 
         // Sensor const* const* sensorList;
         // size_t count = mgr.getSensorList(&sensorList);
@@ -154,6 +160,10 @@ namespace android {
 
         if ((type & SENSOR_ORIENTATION) && !(sensorsEnabled & SENSOR_ORIENTATION)) {
             sensor = mgr.getDefaultSensor(Sensor::TYPE_ACCELEROMETER);
+            if (sensor == NULL) {
+                ALOGV("%s: No orientation sensor available", __FUNCTION__);
+                return;
+            }
             ALOGV("%s:name: %s, type: %d, handle: %d",__FUNCTION__,
                   sensor->getName().string(), sensor->getType(), sensor->getHandle());
             mSensorEventQueue->enableSensor(sensor);
@@ -172,6 +182,10 @@ namespace android {
 
         if ((type & SENSOR_ORIENTATION) && (sensorsEnabled & SENSOR_ORIENTATION)) {
             sensor = mgr.getDefaultSensor(Sensor::TYPE_ACCELEROMETER);
+            if (sensor == NULL) {
+                ALOGV("%s: No orientation sensor available", __FUNCTION__);
+                return;
+            }
             ALOGV("%s: name: %s, type: %d, handle: %d",
                   __FUNCTION__,
                   sensor->getName().string(), sensor->getType(), sensor->getHandle());
