@@ -9,7 +9,7 @@ ifeq ($(AUDIO_HW_USE_LEGACY), true)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := audio.primary.xb4780
-LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
+LOCAL_MODULE_PATH := $(TARGET_OUT_VENDOR_SHARED_LIBRARIES)/hw
 LOCAL_SRC_FILES := \
 	audio_hw.cpp \
 	AudioHardware.cpp
