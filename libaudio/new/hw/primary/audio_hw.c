@@ -2648,6 +2648,35 @@ static int adev_close(hw_device_t *device)
 	return 0;
 }
 
+#if AUDIO_DEVICE_API_VERSION_CURRENT >= AUDIO_DEVICE_API_VERSION_3_0
+static int create_audio_patch(struct audio_hw_device *dev,
+					unsigned int num_sources,
+					const struct audio_port_config *sources,
+					unsigned int num_sinks,
+					const struct audio_port_config *sinks,
+					audio_patch_handle_t *handle)
+{
+	return -ENOSYS;
+}
+
+static int release_audio_patch(struct audio_hw_device *dev,
+					audio_patch_handle_t handle)
+{
+	return -ENOSYS;
+}
+
+static int get_audio_port(struct audio_hw_device *dev, struct audio_port *port)
+{
+	return -ENOSYS;
+}
+
+static int set_audio_port_config(struct audio_hw_device *dev,
+					const struct audio_port_config *config)
+{
+	return -ENOSYS;
+}
+#endif
+
 static int adev_open(const hw_module_t* module, const char* name,
 		hw_device_t** device)
 {
@@ -2671,6 +2700,14 @@ static int adev_open(const hw_module_t* module, const char* name,
 	adev->device.common.version = AUDIO_DEVICE_API_VERSION_CURRENT;
 	adev->device.common.module = (struct hw_module_t *) module;
 	adev->device.common.close = adev_close;
+	adev->device.set_master_mute = NULL;
+	adev->device.get_master_mute = NULL;
+#if AUDIO_DEVICE_API_VERSION_CURRENT >= AUDIO_DEVICE_API_VERSION_3_0
+	adev->device.create_audio_patch = create_audio_patch;
+	adev->device.release_audio_patch = release_audio_patch;
+	adev->device.get_audio_port = get_audio_port;
+	adev->device.set_audio_port_config = set_audio_port_config;
+#endif
 
 	adev->device.get_supported_devices = adev_get_supported_devices;
 	adev->device.init_check = adev_init_check;
