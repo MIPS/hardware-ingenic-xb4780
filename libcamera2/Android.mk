@@ -22,6 +22,7 @@ LOCAL_C_INCLUDES += \
 	external/skia/include/images \
 	external/neven/FaceRecEm/common/src/b_FDSDK \
 	system/core/include \
+	system/media/camera/include \
 	frameworks/native/include \
 	frameworks/native/include/media/hardware \
 	frameworks/av/include \
@@ -55,6 +56,7 @@ LOCAL_SHARED_LIBRARIES:= \
 	libdmmu \
 	libdl \
 	libjzipu \
+	libjhead
 
 ifeq ($(USE_GMS_LIBS),true)
 	LOCAL_SHARED_LIBRARIES += libjpeg_old
