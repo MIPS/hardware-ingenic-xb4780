@@ -41,6 +41,13 @@
  */
 #define MAX_SUB_ALLOCS 3
 
+/* Format is not YCbCr (e.g. a RGB format) - bIsYUVFormat should be false */
+#define YUV_CHROMA_ORDER_NONE 0
+/* Cb follows Y */
+#define YUV_CHROMA_ORDER_CBCR_UV 1
+/* Cr follows Y */
+#define YUV_CHROMA_ORDER_CRCB_VU 2
+
 typedef struct
 {
 	native_handle_t base;
@@ -158,8 +165,8 @@ typedef struct IMG_buffer_format_public_t
 	/* YUV output format */
 	int bIsYUVFormat;
 
-	/* TRUE if U/Cb follows Y, FALSE if V/Cr follows Y */
-	int bUVCbCrOrdering;
+	/* YCBCR_ORDERING_* defined the order of the Cb/Cr values */
+	int eYUVChromaOrder;
 
 	/* Utility function for adjusting YUV per-plane parameters */
 	IMG_buffer_format_compute_params_pfn pfnComputeParams;
