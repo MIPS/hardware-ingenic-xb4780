@@ -788,7 +788,6 @@ namespace android{
             {
             case CAMERA_CMD_ENABLE_FOCUS_MOVE_MSG:
                 bool enable = static_cast<bool>(arg1);
-                AutoMutex lock(mlock);
                 if (enable) {
                     mMesgEnabled |= CAMERA_MSG_FOCUS_MOVE;
                 } else {
