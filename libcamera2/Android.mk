@@ -1,5 +1,7 @@
 ifeq ($(BOARD_HAS_CAMERA), true)
 
+ifeq (0, 1)
+
 LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
@@ -146,4 +148,6 @@ LOCAL_MODULE:= camera.xb4780
 LOCAL_MODULE_TAGS := optional
 
 include $(BUILD_SHARED_LIBRARY)
+
+endif
 endif
