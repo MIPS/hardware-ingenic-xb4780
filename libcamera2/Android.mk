@@ -37,6 +37,8 @@ LOCAL_C_INCLUDES += \
 	hardware/ingenic/xb4780/include/media \
 	kernel/drivers/video
 
+include external/stlport/libstlport.mk
+
 LOCAL_SHARED_LIBRARIES:= \
 	libui \
 	libgui \
@@ -48,7 +50,7 @@ LOCAL_SHARED_LIBRARIES:= \
 	libexif \
 	liblog \
 	libcamera_client \
-	libc++ \
+	libstlport \
 	libmedia \
 	libFFTEm \
 	libdmmu \
