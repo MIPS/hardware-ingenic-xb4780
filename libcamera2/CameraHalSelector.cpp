@@ -55,10 +55,6 @@ namespace android {
             ALOGE("media profile camera num = %d, real number = %d", media_profile_camera_num, mCameraNum);
         }
 
-        if (mCameraNum > MAX_CAMERAS) {
-            mCameraNum = MAX_CAMERAS;
-        }
-
         ALOGV("%s: have %d number camera", __FUNCTION__,mCameraNum);
 
         mHal = new CameraHalCommon*[mCameraNum];
@@ -115,12 +111,7 @@ namespace android {
             return 0;
         }
 
-        int tmp_num = device_selector->getDevice()->getCameraNum();
-        if (tmp_num >= MAX_CAMERAS) {
-            tmp_num = MAX_CAMERAS;
-        }
-        mCameraNum = tmp_num;
-        return mCameraNum;
+        return device_selector->getDevice()->getCameraNum();
     }
 
     int CameraHalSelector::get_number_of_cameras(void) {

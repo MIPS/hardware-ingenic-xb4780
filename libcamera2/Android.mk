@@ -37,20 +37,19 @@ LOCAL_C_INCLUDES += \
 	hardware/ingenic/xb4780/include/media \
 	kernel/drivers/video
 
-include external/stlport/libstlport.mk
-
 LOCAL_SHARED_LIBRARIES:= \
 	libui \
 	libgui \
 	libskia \
 	libandroid_runtime \
+	libandroid \
 	libbinder \
 	libcutils \
 	libutils \
 	libexif \
 	liblog \
 	libcamera_client \
-	libstlport \
+	libc++ \
 	libmedia \
 	libFFTEm \
 	libdmmu \

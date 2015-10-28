@@ -22,7 +22,6 @@
 #endif
 
 #include "CameraDeviceSelector.h"
-#include <CameraService.h>
 
 namespace android {
 

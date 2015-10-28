@@ -97,7 +97,7 @@ namespace android {
     status_t SensorListener::initialize() {
         status_t ret = NO_ERROR;
 
-        SensorManager& mgr(SensorManager::getInstance());
+        SensorManager& mgr(SensorManager::getInstanceForPackage(String16("")));
 
         if (mgr.getDefaultSensor(Sensor::TYPE_ACCELEROMETER) == NULL) {
             ALOGI("%s: no orientation sensor available", __FUNCTION__);
@@ -154,7 +154,7 @@ namespace android {
 
     void SensorListener::enableSensor(sensor_type_t type) {
         const Sensor* sensor;
-        SensorManager& mgr(SensorManager::getInstance());
+        SensorManager& mgr(SensorManager::getInstanceForPackage(String16("")));
 
         AutoMutex lock(mLock);
 
@@ -176,7 +176,7 @@ namespace android {
     void SensorListener::disableSensor(sensor_type_t type) {
         const Sensor *sensor;
 
-        SensorManager& mgr(SensorManager::getInstance());
+        SensorManager& mgr(SensorManager::getInstanceForPackage(String16("")));
 
         AutoMutex lock(mLock);
 
