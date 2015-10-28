@@ -1515,8 +1515,15 @@ namespace android{
                   cwidth, cheight, mCurrentFrame->width, mCurrentFrame->height,cFormat, mCurrentFrame->format, rot);
             if ((mPreviewHeap != NULL) && (mPreviewHeap->data != NULL)) {
                 void* dest = (void*)((int)(mPreviewHeap->data) + mPreviewFrameSize*mPreviewIndex);
-                switch(cFormat) {
 
+                camera_memory_t* zoom_tmp_buf = NULL;
+                if(mzoomVal != 0){
+                    zoom_tmp_buf = mget_memory(-1, getCurrentFrameSize(), 1, NULL);
+                    do_zoom((uint8_t*)zoom_tmp_buf->data, (uint8_t*)mCurrentFrame->yAddr);
+                    src = (uint8_t*)zoom_tmp_buf->data;
+                }
+
+                switch(cFormat) {
                 case HAL_PIXEL_FORMAT_YCbCr_422_SP:
                     if (ccc && (mCurrentFrame->format == HAL_PIXEL_FORMAT_YCbCr_422_I)) {
                         ccc->yuyv_to_yvu420sp((uint8_t*)(dest),
@@ -1629,6 +1636,9 @@ namespace android{
                     convert_result = false;
                     ALOGE("Unhandled pixel format");
                 }
+                if(mzoomVal != 0 && zoom_tmp_buf->data != NULL)
+                    zoom_tmp_buf->release(zoom_tmp_buf);
+                    zoom_tmp_buf = NULL;
                 if (convert_result) {
                     mdata_cb(CAMERA_MSG_PREVIEW_FRAME, mPreviewHeap, mPreviewIndex, 
                              NULL,mcamera_interface);
