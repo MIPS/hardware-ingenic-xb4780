@@ -21,6 +21,10 @@
 
 static int debug_output_fd;
 static int debug_input_fd;
+#ifdef CI20_AUDIO
+static int kdevice_out_old = -1;
+static struct audio_stream *stream_old;
+#endif
 #define DUMP_INPUT_FILE "/data/dump_input.pcm"
 #define DUMP_OUTPUT_FILE "/data/dump_output.pcm"
 #define AUDIO_ALLOW_RECORD_CHANGE_BUFFERSIZE 1
@@ -774,6 +778,11 @@ static int out_set_device(struct audio_stream *stream, audio_devices_t device)
 		ALOGE("%s(line:%d): unknown device!", __func__, __LINE__);
 		return -EINVAL;
 	}
+
+#ifdef CI20_AUDIO
+	stream_old = stream;
+	kdevice_out_old = kdevice;
+#endif
 
 	switch (kdevice) {
 		case AUDIO_DEVICE_OUT_AUX_DIGITAL:
@@ -2609,6 +2618,9 @@ static void adev_close_input_stream(struct audio_hw_device *dev,
 
 	free(in);
 	in = NULL;
+#ifdef CI20_AUDIO
+	out_set_device(stream_old, kdevice_out_old);
+#endif
 	return;
 }
 
