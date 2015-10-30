@@ -28,6 +28,4 @@ LOCAL_SHARED_LIBRARIES :=               \
 
 LOCAL_MODULE:= libOMX_Basecomponent
 
-LOCAL_CFLAGS += -fpermissive
-
 include $(BUILD_STATIC_LIBRARY)
