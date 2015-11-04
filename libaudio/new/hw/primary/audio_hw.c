@@ -726,6 +726,7 @@ static void bt_end_call(struct xb47xx_stream_out *out)
 }
 
 static audio_devices_t  old_devices;
+static enum snd_device_t old_device_mode = SND_DEVICE_DEFAULT;
 
 static int out_set_device(struct audio_stream *stream, audio_devices_t device)
 {
@@ -850,11 +851,17 @@ static int out_set_device(struct audio_stream *stream, audio_devices_t device)
     }
 
     if (out->outDevPrope->dev_fd != -1) {
-		if ((ret = ioctl(out->outDevPrope->dev_fd, SNDCTL_EXT_SET_DEVICE, &device_mode)) < 0) {
-			ALOGE("%s(line:%d): set out device error", __func__, __LINE__);
-			ret = -errno;
+		if (device_mode != old_device_mode) {
+			if ((ret = ioctl(out->outDevPrope->dev_fd, SNDCTL_EXT_SET_DEVICE, &device_mode)) < 0) {
+				ALOGE("%s(line:%d): set out device error", __func__, __LINE__);
+				ret = -errno;
+			}
 		}
 		else {
+			ret = 0;
+		}
+		if (ret >= 0) {
+			old_device_mode = device_mode;
 			out->outState.sState.devices = kdevice;
 			ALOGV("%s(line:%d): set out device %x success", __func__, __LINE__,out->outState.sState.devices);
 		}
