@@ -198,16 +198,6 @@ namespace android{
 
         mHal1SignalRecordingVideo = new Hal1SignalRecordingVideo(this);
         mHal1SignalRecordingVideo->Start("RecordingThread",PRIORITY_DEFAULT, 0);
-        //register for sensor events
-        mSensorListener = new SensorListener();
-        if (mSensorListener.get()) {
-            if (mSensorListener->initialize() == NO_ERROR) {
-                mSensorListener->enableSensor(SensorListener::SENSOR_ORIENTATION);
-            } else {
-                mSensorListener.clear();
-                mSensorListener = NULL;
-            }
-        }
         return ret;
     }
 
@@ -309,6 +299,19 @@ namespace android{
     status_t CameraHal1::startPreview() {
 
         status_t res = NO_ERROR;
+
+        // register for sensor events
+        if(mSensorListener == NULL) {
+            mSensorListener = new SensorListener();
+            if (mSensorListener.get()) {
+                if (mSensorListener->initialize() == NO_ERROR) {
+                    mSensorListener->enableSensor(SensorListener::SENSOR_ORIENTATION);
+                } else {
+                    mSensorListener.clear();
+                    mSensorListener = NULL;
+                }
+            }
+        }
 
         AutoMutex lock(mlock);
         res = mDevice->connectDevice(mcamera_id);
@@ -958,11 +961,12 @@ namespace android{
             mHal1SignalRecordingVideo = NULL;
         }
 
-        if (mSensorListener.get()) {
+        if (mSensorListener != NULL && mSensorListener.get()) {
             mSensorListener->disableSensor(SensorListener::SENSOR_ORIENTATION);
             mSensorListener.clear();
             mSensorListener = NULL;
         }
+
         mDevice->disConnectDevice();
 
         return NO_ERROR;
