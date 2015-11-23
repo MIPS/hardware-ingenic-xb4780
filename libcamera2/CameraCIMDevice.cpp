@@ -790,7 +790,11 @@ namespace android {
             ms_info.sensor_id = camera_id;
             res = ::ioctl(device_fd, CIMIO_GET_SENSORINFO, &ms_info);
             if (mglobal_info.sensor_count == 1) {
+#ifdef CI20_NATIVE_CAMERA
+                info->facing = CAMERA_FACING_BACK;
+#else
                 info->facing = CAMERA_FACING_FRONT;
+#endif
             } else {
                 info->facing = ms_info.facing;
             }

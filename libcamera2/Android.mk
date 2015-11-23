@@ -4,6 +4,11 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
+ifeq (ci20,$(TARGET_DEVICE))
+LOCAL_CFLAGS += \
+	-DCI20_NATIVE_CAMERA
+endif
+
 LOCAL_SRC_FILES:= \
 	SensorListener.cpp \
 	CameraCIMDevice.cpp \
