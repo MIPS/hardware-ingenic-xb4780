@@ -37,11 +37,12 @@
 #include <audio_utils/resampler.h>
 #include <audio_route/audio_route.h>
 
-#define PCM_CARD 1
-#define PCM_DEVICE 0
+#define PCM_CARD 0
+#define PCM_DEVICE_HEADSET 0
+#define PCM_DEVICE_HDMI 1
 #define PCM_DEVICE_SCO 2
 
-#define MIXER_CARD 1
+#define MIXER_CARD 0
 
 #define OUT_PERIOD_SIZE 512
 #define OUT_SHORT_PERIOD_COUNT 2
@@ -51,7 +52,7 @@
 #define IN_PERIOD_SIZE 1024
 #define IN_PERIOD_SIZE_LOW_LATENCY 512
 #define IN_PERIOD_COUNT 2
-#define IN_SAMPLING_RATE 44100
+#define IN_SAMPLING_RATE 8000
 
 #define SCO_PERIOD_SIZE 256
 #define SCO_PERIOD_COUNT 4
@@ -189,36 +190,28 @@ static void release_buffer(struct resampler_buffer_provider *buffer_provider,
 
 static void select_devices(struct audio_device *adev)
 {
+    int hdmi_on;
     int headphone_on;
-    int speaker_on;
-    int docked;
-    int main_mic_on;
+    int headset_mic_on;
 
+    hdmi_on = adev->out_device & AUDIO_DEVICE_OUT_AUX_DIGITAL;
     headphone_on = adev->out_device & (AUDIO_DEVICE_OUT_WIRED_HEADSET |
                                     AUDIO_DEVICE_OUT_WIRED_HEADPHONE);
-    speaker_on = adev->out_device & AUDIO_DEVICE_OUT_SPEAKER;
-    docked = adev->out_device & AUDIO_DEVICE_OUT_ANLG_DOCK_HEADSET;
-    main_mic_on = adev->in_device & AUDIO_DEVICE_IN_BUILTIN_MIC;
+    headset_mic_on = adev->in_device & AUDIO_DEVICE_IN_WIRED_HEADSET ;
 
     audio_route_reset(adev->ar);
 
-    if (speaker_on)
-        audio_route_apply_path(adev->ar, "speaker");
+    if (hdmi_on)
+        audio_route_apply_path(adev->ar, "hdmi");
     if (headphone_on)
         audio_route_apply_path(adev->ar, "headphone");
-    if (docked)
-        audio_route_apply_path(adev->ar, "dock");
-    if (main_mic_on) {
-        if (adev->orientation == ORIENTATION_LANDSCAPE)
-            audio_route_apply_path(adev->ar, "main-mic-left");
-        else
-            audio_route_apply_path(adev->ar, "main-mic-top");
-    }
+    if (headset_mic_on)
+        audio_route_apply_path(adev->ar, "headset-mic");
 
     audio_route_update_mixer(adev->ar);
 
-    ALOGV("hp=%c speaker=%c dock=%c main-mic=%c", headphone_on ? 'y' : 'n',
-          speaker_on ? 'y' : 'n', docked ? 'y' : 'n', main_mic_on ? 'y' : 'n');
+    ALOGV("hdmi=%c hp=%c headset_mic=%c", hdmi_on ? 'y' : 'n',
+          headphone_on ? 'y' : 'n', headset_mic_on ? 'y' : 'n');
 }
 
 /* must be called with hw device and output stream mutexes locked */
@@ -279,8 +272,12 @@ static int start_output_stream(struct stream_out *out)
     if (adev->out_device & AUDIO_DEVICE_OUT_ALL_SCO) {
         device = PCM_DEVICE_SCO;
         out->pcm_config = &pcm_config_sco;
+    } else if (adev->out_device & AUDIO_DEVICE_OUT_WIRED_HEADPHONE ||
+               adev->out_device & AUDIO_DEVICE_OUT_WIRED_HEADSET) {
+        device = PCM_DEVICE_HEADSET;
+        out->pcm_config = &pcm_config_sco;
     } else {
-        device = PCM_DEVICE;
+        device = PCM_DEVICE_HDMI;
         out->pcm_config = &pcm_config_out;
         out->buffer_type = OUT_BUFFER_TYPE_UNKNOWN;
     }
@@ -349,7 +346,7 @@ static int start_input_stream(struct stream_in *in)
         device = PCM_DEVICE_SCO;
         in->pcm_config = &pcm_config_sco;
     } else {
-        device = PCM_DEVICE;
+        device = PCM_DEVICE_HEADSET;
         in->pcm_config = in->pcm_config_non_sco;
     }
 
@@ -571,11 +568,14 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
         val = atoi(value);
         if ((adev->out_device != val) && (val != 0)) {
             /*
-             * If SCO is turned on/off, we need to put audio into standby
-             * because SCO uses a different PCM.
+             * We need to put audio into standby when using different PCM
              */
-            if ((val & AUDIO_DEVICE_OUT_ALL_SCO) ^
-                    (adev->out_device & AUDIO_DEVICE_OUT_ALL_SCO)) {
+            if (((val & AUDIO_DEVICE_OUT_ALL_SCO) ^
+                    (adev->out_device & AUDIO_DEVICE_OUT_ALL_SCO)) ||
+                ((val & AUDIO_DEVICE_OUT_WIRED_HEADPHONE) ^
+                    (adev->out_device & AUDIO_DEVICE_OUT_WIRED_HEADPHONE)) ||
+                ((val & AUDIO_DEVICE_OUT_AUX_DIGITAL) ^
+                    (adev->out_device & AUDIO_DEVICE_OUT_AUX_DIGITAL))) {
                 pthread_mutex_lock(&out->lock);
                 do_out_standby(out);
                 pthread_mutex_unlock(&out->lock);
@@ -1300,8 +1300,8 @@ static int adev_open(const hw_module_t* module, const char* name,
 
     adev->ar = audio_route_init(MIXER_CARD, NULL);
     adev->orientation = ORIENTATION_UNDEFINED;
-    adev->out_device = AUDIO_DEVICE_OUT_SPEAKER;
-    adev->in_device = AUDIO_DEVICE_IN_BUILTIN_MIC & ~AUDIO_DEVICE_BIT_IN;
+    adev->out_device = AUDIO_DEVICE_OUT_AUX_DIGITAL;
+    adev->in_device = AUDIO_DEVICE_IN_WIRED_HEADSET  & ~AUDIO_DEVICE_BIT_IN;
 
     *device = &adev->hw_device.common;
 
