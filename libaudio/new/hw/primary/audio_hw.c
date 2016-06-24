@@ -433,9 +433,9 @@ static int get_next_buffer(struct resampler_buffer_provider *buffer_provider,
         if (in->pcm_config->channels == 2) {
             unsigned int i;
 
-            /* Discard right channel */
-            for (i = 1; i < in->frames_in; i++)
-                in->buffer[i] = in->buffer[i * 2];
+            /* Discard left channel */
+            for (i = 0; i < in->frames_in; i++)
+                in->buffer[i] = in->buffer[i * 2 + 1];
         }
     }
 
@@ -967,16 +967,16 @@ static ssize_t in_read(struct audio_stream_in *stream, void* buffer,
     } else if (in->pcm_config->channels == 2) {
         /*
          * If the PCM is stereo, capture twice as many frames and
-         * discard the right channel.
+         * discard the left channel.
          */
         unsigned int i;
         int16_t *in_buffer = (int16_t *)buffer;
 
         ret = pcm_read(in->pcm, in->buffer, bytes * 2);
 
-        /* Discard right channel */
+        /* Discard left channel */
         for (i = 0; i < frames_rq; i++)
-            in_buffer[i] = in->buffer[i * 2];
+            in_buffer[i] = in->buffer[i * 2 + 1];
     } else {
         ret = pcm_read(in->pcm, buffer, bytes);
     }
