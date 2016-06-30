@@ -1038,7 +1038,7 @@ static void accum_p_qp_update( x264_t *h, float qp )
 
  /* Set up a static global variable which can retrieve bit-size of every fram from ratecontrol_end.
   * qp wiil be adjusted corresponding to real encoded bits.
-  * variable name: fbr_bits. 
+  * variable name: fbr_bits.
   */
 static int fbr_bits = 0;
 static int compensate_count_add = 0;
@@ -1047,6 +1047,42 @@ static int compensate_count_sub = 0;
 #ifndef _MATH_H
 #include <math.h>
 #endif
+
+/*  For the qp's smallest stepping unit is one, so in the process of FBR, qp perhaps reaches a stable value which
+ *  results the real bits is constantly a liitle greater or less than the expected size.
+ *  In this condition, the compensation func is activated.
+ *  If the target bitrate is out of range (bigger than 2000 kbps), this func needs further elaboration. -      */
+int check_compensate( int real_bits, int expect , int bitrate )
+{
+    int level = bitrate / 300 ;       /* 300 kbps */
+
+    if ( real_bits >= expect * 1.08 )
+    {
+        compensate_count_sub = 0;
+        compensate_count_add++;
+    }
+    else if ( real_bits <= expect * 0.93 )
+    {
+        compensate_count_sub++;
+        compensate_count_add = 0;
+    }
+
+    if ( compensate_count_add ==  (int) (3.5 + level / 3.0 ) )
+    {
+         compensate_count_add = 0;
+         compensate_count_sub = 0;
+         return 1;
+    }
+    else if ( compensate_count_sub == (int)( 3.5 + level / 3.0 ) )
+    {
+         compensate_count_sub = 0;
+         compensate_count_add = 0;
+         return -1;
+    }
+
+    return 0;
+}
+/* peng */
 
 void x264_ratecontrol_start( x264_t *h, int i_force_qp, int overhead )
 {
@@ -1060,9 +1096,9 @@ void x264_ratecontrol_start( x264_t *h, int i_force_qp, int overhead )
     /* fbr mode initializing */
     int expect_bits  = (int) (1000 * h->param.rc.i_fbr_bitrate / h->param.i_fps_num * 0.95 );
     int weight_index = x264_clip3 (h->param.rc.i_fbr_bitrate / 300, 0, 6 );
-    
+
     /* this array need further modifying once all the parameters are settled down. */
-    const static float weight_coeffs[7][8] = 
+    const static float weight_coeffs[7][8] =
     {
         {1.18, 1.43, 1.63, 2.3 , 3.0 , 0.75, 0.58, 0.38},
         {1.2 , 1.45, 1.65, 2.35, 3.1 , 0.75, 0.55, 0.35},
@@ -1071,46 +1107,8 @@ void x264_ratecontrol_start( x264_t *h, int i_force_qp, int overhead )
         {1.4 , 1.62, 1.77, 2.5 , 3.25, 0.7 , 0.48, 0.3 },
         {1.42, 1.68, 1.8 , 2.55, 3.3 , 0.65, 0.45, 0.28},
         {1.42, 1.72, 1.84, 2.6 , 3.3 , 0.6 , 0.43 ,0.25},
-     
+
      };
-
-     /*  For the qp's smallest stepping unit is one, so in the process of FBR, qp perhaps reaches a stable value which 
-      *  results the real bits is constantly a liitle greater or less than the expected size. 
-      *  In this condition, the compensation func is activated.  
-      *  If the target bitrate is out of range (bigger than 2000 kbps), this func needs further elaboration. -      */
-    int check_compensate( int real_bits, int expect , int bitrate )
-    {
-    	int level = bitrate / 300 ;       /* 300 kbps */
-
-        if ( real_bits >= expect * 1.08 )
-        {
-            compensate_count_sub = 0;
-            compensate_count_add++;
-        }
-        else if ( real_bits <= expect * 0.93 )
-        {
-       	    compensate_count_sub++;
-            compensate_count_add = 0;
-        }
-                
-        if ( compensate_count_add ==  (int) (3.5 + level / 3.0 ) )
-        {
-             compensate_count_add = 0;
-             compensate_count_sub = 0;
-             return 1;	
-        }
-        else if ( compensate_count_sub == (int)( 3.5 + level / 3.0 ) )
-    	{
-             compensate_count_sub = 0;
-             compensate_count_add = 0;
-             return -1;
-    	}
-
-        return 0;
-    }       
-    /* peng */
-
-
 
     if( zone && (!rc->prev_zone || zone->param != rc->prev_zone->param) )
         x264_encoder_reconfig( h, zone->param );
@@ -1157,23 +1155,23 @@ void x264_ratecontrol_start( x264_t *h, int i_force_qp, int overhead )
     }
     else /* CQP */
     {
-#if 0 
+#if 0
         if( h->sh.i_type == SLICE_TYPE_B && h->fdec->b_kept_as_ref )
             q = ( rc->qp_constant[ SLICE_TYPE_B ] + rc->qp_constant[ SLICE_TYPE_P ] ) / 2;
 #endif
         /* fbr control starting... */
 
-        /* for the current slice is p and the previous one is not IDR( also p ). */	
-	if ( h->sh.i_type == SLICE_TYPE_P && h->param.rc.b_fbr && h->param.i_keyint_max !=0 &&\
-             (h->i_frame % h->param.i_keyint_max != 1) )	
-        {	
-            /* after about 10 frames, there will be one very samll size frame although it uses the same QP as the 
-             * previous one. So, keep the last QP. 
-             */              
-	    static int last_in_frame = 0;        
-	    if ( (h->i_frame - last_in_frame > 5) && rc->qp_constant[SLICE_TYPE_P] < 32 &&\
-		  fbr_bits <= ( 1.0 * h->param.rc.i_fbr_bitrate / h->param.i_fps_num * 1000 * 0.4 ) )
-		last_in_frame =  h->i_frame ;
+        /* for the current slice is p and the previous one is not IDR( also p ). */
+        if ( h->sh.i_type == SLICE_TYPE_P && h->param.rc.b_fbr && h->param.i_keyint_max !=0 &&\
+             (h->i_frame % h->param.i_keyint_max != 1) )
+        {
+            /* after about 10 frames, there will be one very samll size frame although it uses the same QP as the
+             * previous one. So, keep the last QP.
+             */
+            static int last_in_frame = 0;
+            if ( (h->i_frame - last_in_frame > 5) && rc->qp_constant[SLICE_TYPE_P] < 32 &&\
+                  fbr_bits <= ( 1.0 * h->param.rc.i_fbr_bitrate / h->param.i_fps_num * 1000 * 0.4 ) )
+                last_in_frame =  h->i_frame ;
             else
             {
                 if ( fbr_bits >= expect_bits * weight_coeffs[weight_index][0] && \
@@ -1182,37 +1180,37 @@ void x264_ratecontrol_start( x264_t *h, int i_force_qp, int overhead )
 
                 else if (fbr_bits >= expect_bits * weight_coeffs[weight_index][1] &&\
                          fbr_bits <  expect_bits * weight_coeffs[weight_index][2] )
-		    rc->qp_constant[h->sh.i_type] += 2;
+                    rc->qp_constant[h->sh.i_type] += 2;
 
                 else if (fbr_bits >= expect_bits * weight_coeffs[weight_index][2] &&\
                          fbr_bits <  expect_bits * weight_coeffs[weight_index][3] )
-		    rc->qp_constant[h->sh.i_type] += 3;
+                    rc->qp_constant[h->sh.i_type] += 3;
 
                 else if (fbr_bits >= expect_bits * weight_coeffs[weight_index][3] &&\
                          fbr_bits <  expect_bits * weight_coeffs[weight_index][4] )
-		    rc->qp_constant[h->sh.i_type] += 4;
+                    rc->qp_constant[h->sh.i_type] += 4;
 
                 else if (fbr_bits >= expect_bits * weight_coeffs[weight_index][4] )
-		    rc->qp_constant[h->sh.i_type] += 6;
+                    rc->qp_constant[h->sh.i_type] += 6;
 
 
                 else if (fbr_bits <= expect_bits * weight_coeffs[weight_index][5] &&\
                          fbr_bits >  expect_bits * weight_coeffs[weight_index][6] )
-		    rc->qp_constant[h->sh.i_type] -= 1;
+                    rc->qp_constant[h->sh.i_type] -= 1;
 
                 else if (fbr_bits <= expect_bits * weight_coeffs[weight_index][6] &&\
                          fbr_bits <= expect_bits * weight_coeffs[weight_index][6])
-		    rc->qp_constant[h->sh.i_type] -= 2;
+                    rc->qp_constant[h->sh.i_type] -= 2;
 
                 else if (fbr_bits <= expect_bits * weight_coeffs[weight_index][7] )
-		    rc->qp_constant[h->sh.i_type] -= 3;
+                    rc->qp_constant[h->sh.i_type] -= 3;
 
-               else		       
+               else
                    ;
                rc->qp_constant[h->sh.i_type] += check_compensate(fbr_bits, expect_bits, h->param.rc.i_fbr_bitrate );
-	    }
-        } /* FBR finish */ 
- 
+            }
+        } /* FBR finish */
+
         q = rc->qp_constant[ h->sh.i_type ];
         //rc->ip_offset = 6.0 * log(h->param.rc.f_ip_factor) / log(2.0);   = 2.912560963
         rc->qp_constant[SLICE_TYPE_I] = x264_clip3( q - 2.912560963 + 0.5, 0, 51 );
@@ -1224,11 +1222,11 @@ void x264_ratecontrol_start( x264_t *h, int i_force_qp, int overhead )
             else
                 q -= 6*log(zone->f_bitrate_factor)/log(2);
         }
-#endif// no zone 
+#endif// no zone
     }
 
     q = x264_clip3f( q, h->param.rc.i_qp_min, h->param.rc.i_qp_max );
-    
+
     //rc->qpa_rc =
     //rc->qpa_aq = 0;
     h->fdec->f_qp_avg_rc =
@@ -1471,7 +1469,7 @@ int x264_ratecontrol_end( x264_t *h, int bits )
     for( i = B_DIRECT; i < B_8x8; i++ )
         h->stat.frame.i_mb_count_p += mbs[i];
 #endif
-   
+
     //h->fdec->f_qp_avg_rc = rc->qpa_rc /= h->mb.i_mb_count;
     //h->fdec->f_qp_avg_aq = rc->qpa_aq /= h->mb.i_mb_count;
     h->fdec->f_qp_avg_aq = rc->f_qpm;

@@ -44,7 +44,7 @@
 static unsigned int GetTimer(void){
     struct timeval tv;
     gettimeofday(&tv,NULL);
-    
+
     return tv.tv_sec * 1000000 + tv.tv_usec;
 }
 
@@ -71,9 +71,9 @@ extern volatile unsigned char * efe_base;
 extern volatile unsigned char * cpm_base;
 
 #define CPM_VPU_SWRST    (cpm_base + 0xC4)
-#define CPM_VPU_SR     	 (0x1<<31)
-#define CPM_VPU_STP    	 (0x1<<30)
-#define CPM_VPU_ACK    	 (0x1<<29)
+#define CPM_VPU_SR       (0x1<<31)
+#define CPM_VPU_STP      (0x1<<30)
+#define CPM_VPU_ACK      (0x1<<29)
 
 #define write_cpm_reg(a)    (*(volatile unsigned int *)(CPM_VPU_SWRST) = a)
 #define read_cpm_reg()      (*(volatile unsigned int *)(CPM_VPU_SWRST))
@@ -574,15 +574,15 @@ static int x264_validate_parameters( x264_t *h )
         float qp_p = h->param.rc.i_qp_constant;
         float qp_i = qp_p - 6*log(h->param.rc.f_ip_factor)/log(2);
         float qp_b = qp_p + 6*log(h->param.rc.f_pb_factor)/log(2);
-        
+
         /* qp_min qp_max will be quoted in cose_analyse section. peng  */
         if ( h->param.rc.b_fbr )
-	{
+        {
             h->param.rc.i_qp_min = 1;
             h->param.rc.i_qp_max = 51;
         }
         else
-	{
+        {
             h->param.rc.i_qp_min = x264_clip3( (int)(X264_MIN3( qp_p, qp_i, qp_b )), 0, 51 );
             h->param.rc.i_qp_max = x264_clip3( (int)(X264_MAX3( qp_p, qp_i, qp_b ) + .999), 0, 51 );
         }
@@ -751,7 +751,7 @@ static int x264_validate_parameters( x264_t *h )
             do h->param.i_level_idc = l->level_idc;
                 while( l[1].level_idc && x264_validate_levels( h, 0 ) && l++ );
             h->param.rc.i_vbv_max_bitrate = maxrate_bak;
-	    h->param.need_sps_init = 0;
+            h->param.need_sps_init = 0;
         }
         else
         {
@@ -910,27 +910,27 @@ static int x264_init_jz4780(x264_t * h)
     ptr = (uint8_t *)jz4740_alloc_frame(h->param.VpuMem_ptr, 256, ((width*16+32*2)*(height*16+32*2) + 1024) );
     s->fb_ptr[0][0] = (uint8_t *)(ptr + (width*16+32*2)*32 + 16*16*2 + 256);
     s->H264E_SliceInfo.fb[0][0] = s->fb_ptr[0][0];
-    
+
     ptr = (uint8_t *)jz4740_alloc_frame(h->param.VpuMem_ptr, 256, ((width*16+32*2)*(height*8+16*2) + 1024) );
     s->fb_ptr[0][1] = (uint8_t *)(ptr + (width*16+32*2)*16 + 16*8*2 + 256);
     s->H264E_SliceInfo.fb[0][1] = s->fb_ptr[0][1];
     //fprintf(stderr, "H264E_SliceInfo.fb[0]: %08x, %08x\n", s->H264E_SliceInfo.fb[0][0], s->H264E_SliceInfo.fb[0][1]);
-    
+
     //  ref
     ptr = (uint8_t *)jz4740_alloc_frame(h->param.VpuMem_ptr, 256, ((width*16+32*2)*(height*16+32*2) + 1024) );
     s->fb_ptr[1][0] = (uint8_t *)(ptr + (width*16+32*2)*32 + 16*16*2 + 256);
     s->H264E_SliceInfo.fb[1][0] = s->fb_ptr[1][0];
-    
+
     ptr = (uint8_t *)jz4740_alloc_frame(h->param.VpuMem_ptr, 256, ((width*16+32*2)*(height*8+16*2) + 1024) );
     s->fb_ptr[1][1] = (uint8_t *)(ptr + (width*16+32*2)*16 + 16*8*2 + 256);
     s->H264E_SliceInfo.fb[1][1] = s->fb_ptr[1][1];
     //fprintf(stderr, "H264E_SliceInfo.fb[1]: %08x, %08x\n", s->H264E_SliceInfo.fb[1][0], s->H264E_SliceInfo.fb[1][1]);
-    
+
     // input
     ptr = (uint8_t *)jz4740_alloc_frame(h->param.VpuMem_ptr, 256, ((width*16)*(height*16) + 1024) );
     s->fb_ptr[2][0] = (uint8_t *)(ptr + 256);
     s->H264E_SliceInfo.fb[2][0] = s->fb_ptr[2][0];
-    
+
     ptr = (uint8_t *)jz4740_alloc_frame(h->param.VpuMem_ptr, 256, ((width*16)*(height*8) + 1024) );
     s->fb_ptr[2][1] = (uint8_t *)(ptr + 256);
     s->H264E_SliceInfo.fb[2][1] = s->fb_ptr[2][1];
@@ -1202,9 +1202,9 @@ x264_t *x264_encoder_open( x264_param_t *param )
 
 #if 0  //gjwang
     if(h->sps->i_mb_width > (TOP_LINE_MV_NUM - 4)){
-	ALOGE("The Frame is too width. Ony surport large to 1280*720. Sorry :-)\n");
-	ALOGE("%d, %d\n", h->sps->i_mb_width, TOP_LINE_MV_NUM - 4);
-	return NULL;
+        ALOGE("The Frame is too width. Ony surport large to 1280*720. Sorry :-)\n");
+        ALOGE("%d, %d\n", h->sps->i_mb_width, TOP_LINE_MV_NUM - 4);
+        return NULL;
     }
 #endif
 
@@ -1265,7 +1265,7 @@ int x264_encoder_reconfig( x264_t *h, x264_param_t *param )
     COPY( i_keyint_max );
     COPY( rc.i_fbr_bitrate );
     if (param->i_level_idc > 0)
-	COPY( i_level_idc );
+        COPY( i_level_idc );
     COPY( need_sps_init );
 #undef COPY
 
@@ -1819,29 +1819,29 @@ static void dump_frame_data( x264_t * h, uint8_t * Y, uint8_t * C )
     sprintf(filename, "/data/real_frame%d.c", h->i_frame);
     FILE * fp = fopen(filename, "w+");
     for(mb_h = 0; mb_h < h->sps->i_mb_height; mb_h++){
-	for(mb_w = 0; mb_w < h->sps->i_mb_width; mb_w++) {
-	    fprintf(fp, "mb : (%d, %d)\n************************ Y ***********************\n", mb_h, mb_w);
-	    for(i = 0; i < 16; i++){
-		fprintf(fp, "0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x\n", src_y[0], src_y[1], src_y[2], src_y[3], src_y[4], src_y[5], src_y[6], src_y[7], src_y[8], src_y[9], src_y[10], src_y[11], src_y[12], src_y[13], src_y[14], src_y[15]);
-		src_y += 16;
-	    }
-	    fprintf(fp, "************************ C ***********************\n");
-	    for(j = 0; j < 8; j++) {
-		fprintf(fp, "0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ** 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x\n", src_c[0], src_c[1], src_c[2], src_c[3], src_c[4], src_c[5], src_c[6], src_c[7], src_c[8], src_c[9], src_c[10], src_c[11], src_c[12], src_c[13], src_c[14], src_c[15]);
-		src_c += 16;
-	    }
-	}
+        for(mb_w = 0; mb_w < h->sps->i_mb_width; mb_w++) {
+            fprintf(fp, "mb : (%d, %d)\n************************ Y ***********************\n", mb_h, mb_w);
+            for(i = 0; i < 16; i++){
+                fprintf(fp, "0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x\n", src_y[0], src_y[1], src_y[2], src_y[3], src_y[4], src_y[5], src_y[6], src_y[7], src_y[8], src_y[9], src_y[10], src_y[11], src_y[12], src_y[13], src_y[14], src_y[15]);
+                src_y += 16;
+            }
+            fprintf(fp, "************************ C ***********************\n");
+            for(j = 0; j < 8; j++) {
+                fprintf(fp, "0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ** 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x\n", src_c[0], src_c[1], src_c[2], src_c[3], src_c[4], src_c[5], src_c[6], src_c[7], src_c[8], src_c[9], src_c[10], src_c[11], src_c[12], src_c[13], src_c[14], src_c[15]);
+                src_c += 16;
+            }
+        }
     }
     fclose(fp);
 
     ALOGE("dump raw frame data done ...\n");
 
-    return 0;
+    return;
 }
 
 static int x264_slice_write_hw( x264_t *h )
 {
-    int i, j; 
+    int i, j;
     int bs_len = 0;
 
     HwInfo_t * s = (HwInfo_t *)h->hwinfo;
@@ -1857,14 +1857,14 @@ static int x264_slice_write_hw( x264_t *h )
     x264_macroblock_thread_init( h );
     x264_slice_header_write( &h->out.bs, &h->sh, h->i_nal_ref_idc );
     if( h->param.b_cabac ) {
-	  /* alignment needed */
-	bs_align_1( &h->out.bs );
+          /* alignment needed */
+        bs_align_1( &h->out.bs );
 
-	  /* init cabac */
-	x264_cabac_context_init( &h->cabac, h->sh.i_type, h->sh.i_qp, h->sh.i_cabac_init_idc );
-	x264_cabac_encode_init ( &h->cabac, h->out.bs.p, h->out.bs.p_end );
+          /* init cabac */
+        x264_cabac_context_init( &h->cabac, h->sh.i_type, h->sh.i_qp, h->sh.i_cabac_init_idc );
+        x264_cabac_encode_init ( &h->cabac, h->out.bs.p, h->out.bs.p_end );
     } else {
-	ALOGE("[ %s ] we only support cabac!", __FUNCTION__);
+        ALOGE("[ %s ] we only support cabac!", __FUNCTION__);
     }
 
 #ifdef JZC_PMON_P0
@@ -1877,39 +1877,39 @@ static int x264_slice_write_hw( x264_t *h )
        *         if we want to used this, pay attension to hw pixel tactic way(add expand area)
        */
     if( h->sh.i_type != SLICE_TYPE_I )
-	tile_stuff((uint8_t *)s->fb_ptr[1][0], (uint8_t *)s->fb_ptr[1][1], 
-		   h->fref0[0]->plane[0], h->fref0[0]->plane[1], h->fref0[0]->plane[2],
-		   h->fdec->i_stride[0] ,h->fdec->i_stride[1],
-		   h->sps->i_mb_height, h->sps->i_mb_width, 1);
+        tile_stuff((uint8_t *)s->fb_ptr[1][0], (uint8_t *)s->fb_ptr[1][1],
+                   h->fref0[0]->plane[0], h->fref0[0]->plane[1], h->fref0[0]->plane[2],
+                   h->fdec->i_stride[0] ,h->fdec->i_stride[1],
+                   h->sps->i_mb_height, h->sps->i_mb_width, 1);
 #else
       /* the ref fb_ptr[1] has same pixel tactic way with dec fb_ptr[0], so just exchange pointer OK
        * no need to copy pixel from dec to ref
        */
     if( h->sh.i_type != SLICE_TYPE_I ){
-	XCHG2(sliceinfo->fb[0][0], sliceinfo->fb[1][0], chg);
-	XCHG2(sliceinfo->fb[0][1], sliceinfo->fb[1][1], chg);
-	XCHG2(s->fb_ptr[0][0], s->fb_ptr[1][0], chg);
-	XCHG2(s->fb_ptr[0][1], s->fb_ptr[1][1], chg);
+        XCHG2(sliceinfo->fb[0][0], sliceinfo->fb[1][0], chg);
+        XCHG2(sliceinfo->fb[0][1], sliceinfo->fb[1][1], chg);
+        XCHG2(s->fb_ptr[0][0], s->fb_ptr[1][0], chg);
+        XCHG2(s->fb_ptr[0][1], s->fb_ptr[1][1], chg);
     }
 #endif
 
     if(h->param.i_csp == X264_CSP_YUYV) { // data frame camera
-	sliceinfo->fb[2][0] = h->raw_yuv422_ptr;
-	sliceinfo->fb[2][1] = h->raw_yuv422_ptr + h->sps->i_mb_height * h->sps->i_mb_width * 64;
-	  //ALOGE("Got h->param.i_csp == X264_CSP_YUYV, Y : 0x%08x, C : 0x%08x", s->fb_ptr[2][0], s->fb_ptr[2][1]);
+        sliceinfo->fb[2][0] = h->raw_yuv422_ptr;
+        sliceinfo->fb[2][1] = h->raw_yuv422_ptr + h->sps->i_mb_height * h->sps->i_mb_width * 64;
+          //ALOGE("Got h->param.i_csp == X264_CSP_YUYV, Y : 0x%08x, C : 0x%08x", s->fb_ptr[2][0], s->fb_ptr[2][1]);
     } else { // get from file *.yuv
-	tile_stuff((uint8_t *)s->fb_ptr[2][0], (uint8_t *)s->fb_ptr[2][1],
-		   h->fenc->plane[0], h->fenc->plane[1], h->fenc->plane[2], 
-		   h->fdec->i_stride[0], h->fdec->i_stride[1],
-		   h->sps->i_mb_height, h->sps->i_mb_width, 0);
+        tile_stuff((uint8_t *)s->fb_ptr[2][0], (uint8_t *)s->fb_ptr[2][1],
+                   h->fenc->plane[0], h->fenc->plane[1], h->fenc->plane[2],
+                   h->fdec->i_stride[0], h->fdec->i_stride[1],
+                   h->sps->i_mb_height, h->sps->i_mb_width, 0);
 
-	jz_dcache_wb();
+        jz_dcache_wb();
     }
 
 #ifdef JZC_PMON_P0
     PMON_OFF(copy);
 #endif
-    
+
     // HW start
     EL("h264 slice init!");
     sliceinfo->frame_type = (h->sh.i_type != SLICE_TYPE_I);
@@ -1934,7 +1934,7 @@ static int x264_slice_write_hw( x264_t *h )
 
     for(j=0; j<4; j++)
         for(i=0; i<16; i++)
-	    sliceinfo->scaling_list[j][i] = h->pps->scaling_list[j][i];
+            sliceinfo->scaling_list[j][i] = h->pps->scaling_list[j][i];
 
     sliceinfo->mb_width = h->sps->i_mb_width;
     sliceinfo->mb_height = h->sps->i_mb_height;
@@ -1957,14 +1957,14 @@ static int x264_slice_write_hw( x264_t *h )
     // write_vpu_reg(vpu_base+ REG_SCH_GLBC, (SCH_INTE_ACFGERR | SCH_INTE_BSERR | SCH_INTE_ENDF) );
     EL("write state ....!");
     write_vpu_reg(vpu_base + REG_SCH_GLBC, SCH_GLBC_HIAXI
-		  | SCH_GLBC_TLBE | SCH_GLBC_TLBINV
-		  | SCH_INTE_ACFGERR | SCH_INTE_TLBERR | SCH_INTE_BSERR | SCH_INTE_ENDF
-		  );
+                  | SCH_GLBC_TLBE | SCH_GLBC_TLBINV
+                  | SCH_INTE_ACFGERR | SCH_INTE_TLBERR | SCH_INTE_BSERR | SCH_INTE_ENDF
+                  );
 
     dmmu_get_page_table_base_phys(&tlb_addr);
     EL("[ %s ] Get tlb phy addr : 0x%08x", __FUNCTION__, tlb_addr);
     write_vpu_reg(vpu_base + REG_SCH_TLBA, tlb_addr);
-        
+
 #ifdef JZC_PMON_P0
     PMON_ON(hw);
 #endif
@@ -1981,17 +1981,17 @@ static int x264_slice_write_hw( x264_t *h )
 
 #ifdef X264_POLL
     do {
-	vpu_status = (read_vpu_reg(vpu_base + 0x34, 0x0) & 0x1);
-	/* ALOGE("vpu status=0x%x,vdma status=0x%x,vdma dha=0x%x, sde status = 0x%08x, sde id=0x%x, sde bsaddr=0x%x, GEO = 0x%08x, efe status : 0x%08x", */
-	/*      *(volatile unsigned int *)(vpu_base + 0x34), */
-	/*      *(volatile unsigned int *)(gp0_base + 0xC), */
-	/*      *(volatile unsigned int *)(gp0_base + 0x8), */
-	/*      *(volatile unsigned int *)(sde_base + 0x0), */
-	/*      *(volatile unsigned int *)(sde_base + 0x10), */
-	/*      *(volatile unsigned int *)(sde_base + 0x24), */
-	/*      *(volatile unsigned int *)(dblk0_base + 0x7C), */
-	/*      *(volatile unsigned int *)(efe_base + 0x110) */
-	/*      ); */
+        vpu_status = (read_vpu_reg(vpu_base + 0x34, 0x0) & 0x1);
+        /* ALOGE("vpu status=0x%x,vdma status=0x%x,vdma dha=0x%x, sde status = 0x%08x, sde id=0x%x, sde bsaddr=0x%x, GEO = 0x%08x, efe status : 0x%08x", */
+        /*      *(volatile unsigned int *)(vpu_base + 0x34), */
+        /*      *(volatile unsigned int *)(gp0_base + 0xC), */
+        /*      *(volatile unsigned int *)(gp0_base + 0x8), */
+        /*      *(volatile unsigned int *)(sde_base + 0x0), */
+        /*      *(volatile unsigned int *)(sde_base + 0x10), */
+        /*      *(volatile unsigned int *)(sde_base + 0x24), */
+        /*      *(volatile unsigned int *)(dblk0_base + 0x7C), */
+        /*      *(volatile unsigned int *)(efe_base + 0x110) */
+        /*      ); */
     } while( vpu_status == 0 );
     time1 = GetTimer();
     EL("[ Polling ]wait vpu %d us end ...", time1 - time);
@@ -1999,15 +1999,15 @@ static int x264_slice_write_hw( x264_t *h )
     ioctl(tcsm_fd, 0, &vpu_status);
     time1 = GetTimer();
     if( vpu_status & 0x1 ) {
-	EL("[ Interrupt ] wait vpu %d us end ...", time1 - time);
+        EL("[ Interrupt ] wait vpu %d us end ...", time1 - time);
     } else { // print error status
-	ALOGE("vpu status = 0x%x, vdma status = 0x%x, vdma dha = 0x%x, sde id = 0x%x, sde bsaddr = 0x%x",
-	     *(volatile unsigned int *)(vpu_base + 0x34),
-	     *(volatile unsigned int *)(gp0_base + 0xC),
-	     *(volatile unsigned int *)(gp0_base + 0x8),
-	     *(volatile unsigned int *)(sde_base + 0x10),
-	     *(volatile unsigned int *)(sde_base + 0x24)
-	     );
+        ALOGE("vpu status = 0x%x, vdma status = 0x%x, vdma dha = 0x%x, sde id = 0x%x, sde bsaddr = 0x%x",
+             *(volatile unsigned int *)(vpu_base + 0x34),
+             *(volatile unsigned int *)(gp0_base + 0xC),
+             *(volatile unsigned int *)(gp0_base + 0x8),
+             *(volatile unsigned int *)(sde_base + 0x10),
+             *(volatile unsigned int *)(sde_base + 0x24)
+             );
     }
 #endif
 
@@ -2226,37 +2226,37 @@ int     x264_encoder_encode( x264_t *h,
         if( !fenc )
             return -1;
 
-	if(pic_in->img.i_csp == X264_CSP_YUYV)
-	{
-	  fenc->i_type     = pic_in->i_type;
-	  fenc->i_qpplus1  = pic_in->i_qpplus1;
-	  fenc->i_pts      = pic_in->i_pts;
-	  fenc->param      = pic_in->param;
+        if(pic_in->img.i_csp == X264_CSP_YUYV)
+        {
+          fenc->i_type     = pic_in->i_type;
+          fenc->i_qpplus1  = pic_in->i_qpplus1;
+          fenc->i_pts      = pic_in->i_pts;
+          fenc->param      = pic_in->param;
 
           //#include "soc/raw_yuv422_data.c"
-	  //pic_in->img.raw_yuv422_ptr = raw_yuv422_frame_data;
+          //pic_in->img.raw_yuv422_ptr = raw_yuv422_frame_data;
 
-	  //ALOGE("pic_in->img.raw_yuv422_ptr = 0x%08x", pic_in->img.raw_yuv422_ptr);
+          //ALOGE("pic_in->img.raw_yuv422_ptr = 0x%08x", pic_in->img.raw_yuv422_ptr);
 
-	  //memcpy(h->raw_yuv422_ptr, pic_in->img.raw_yuv422_ptr, h->param.i_width * h->param.i_height * 2);
-	  h->raw_yuv422_ptr = pic_in->img.raw_yuv422_ptr;
-	  
+          //memcpy(h->raw_yuv422_ptr, pic_in->img.raw_yuv422_ptr, h->param.i_width * h->param.i_height * 2);
+          h->raw_yuv422_ptr = pic_in->img.raw_yuv422_ptr;
+
           if( h->param.i_width != 16 * h->sps->i_mb_width ||
               h->param.i_height != 16 * h->sps->i_mb_height )
-	  {
-	    printf("We only surport width\%16 = 0 && height\%16 = 0 now\n");
-	  }
+          {
+            printf("We only surport width\%16 = 0 && height\%16 = 0 now\n");
+          }
 
         }else
-	{
-	  if( x264_frame_copy_picture( h, fenc, pic_in ) < 0 )
+        {
+          if( x264_frame_copy_picture( h, fenc, pic_in ) < 0 )
               return -1;
 
           if( h->param.i_width != 16 * h->sps->i_mb_width ||
               h->param.i_height != 16 * h->sps->i_mb_height )
               x264_frame_expand_border_mod16( h, fenc );
 
-	}
+        }
 
         fenc->i_frame = h->frames.i_input++;
 
@@ -2298,11 +2298,11 @@ int     x264_encoder_encode( x264_t *h,
 
     h->i_frame++;
     /* 3: The picture is analyzed in the lookahead */
-     if( !h->frames.current[0] ) 
-         x264_lookahead_get_frames( h ); 
+     if( !h->frames.current[0] )
+         x264_lookahead_get_frames( h );
 
-     if( !h->frames.current[0] && x264_lookahead_is_empty( h ) ) 
-         return x264_encoder_frame_end( thread_oldest, thread_current, pp_nal, pi_nal, pic_out ); 
+     if( !h->frames.current[0] && x264_lookahead_is_empty( h ) )
+         return x264_encoder_frame_end( thread_oldest, thread_current, pp_nal, pi_nal, pic_out );
 
     /* ------------------- Get frame to be encoded ------------------------- */
     /* 4: get picture to encode */
@@ -2476,15 +2476,15 @@ int     x264_encoder_encode( x264_t *h,
 #ifdef  HAS_MOTION
 
     if( h->sh.i_type != SLICE_TYPE_I ){
-#if 0      
+#if 0
       tile_stuff(h, mcfg.luma_ref_addr[mcfg.ref_addr_index][0][0],
-		    mcfg.chroma_ref_addr[mcfg.ref_addr_index][0][0], 
-		    h->fref0[0]->plane[0], h->fref0[0]->plane[1], h->fref0[0]->plane[2],
-		    h->sps->i_mb_height, h->sps->i_mb_width);
+                    mcfg.chroma_ref_addr[mcfg.ref_addr_index][0][0],
+                    h->fref0[0]->plane[0], h->fref0[0]->plane[1], h->fref0[0]->plane[2],
+                    h->sps->i_mb_height, h->sps->i_mb_width);
 #else
       add_edge(h, mcfg.luma_ref_addr[mcfg.ref_addr_index][0][0],
-		    mcfg.chroma_ref_addr[mcfg.ref_addr_index][0][0], 
-		    h->sps->i_mb_height, h->sps->i_mb_width);
+                    mcfg.chroma_ref_addr[mcfg.ref_addr_index][0][0],
+                    h->sps->i_mb_height, h->sps->i_mb_width);
 
 #endif
     }
@@ -2525,7 +2525,7 @@ static int x264_encoder_frame_end( x264_t *h, x264_t *thread_current,
 
       printf("\nframe: %2d, %s\n", h->i_frame, h->sh.i_type == SLICE_TYPE_I? "I" : "P" );
 
-      printf("D: %d; I:%d\n", entropy_code_pmon_val/mb_num, entropy_code_pmon_val_ex/mb_num);      
+      printf("D: %d; I:%d\n", entropy_code_pmon_val/mb_num, entropy_code_pmon_val_ex/mb_num);
       entropy_code_pmon_val = 0; entropy_code_pmon_val_ex = 0;
 
       //printf("PMON cache_save   -D: %d; I:%d\n", cache_save_pmon_val/mb_num, cache_save_pmon_val_ex/mb_num);
@@ -3082,20 +3082,20 @@ int x264_encoder_delayed_frames( x264_t *h )
 static void zigzag_scan_4x4_hw( int16_t level[16], const int16_t dct[16] )
 {
 #if 0
-    level[0]  = dct[0]; level[1]  = dct[1];  level[2]  = dct[4];  level[3]  = dct[8]; 
-    level[4]  = dct[5]; level[5]  = dct[2];  level[6]  = dct[3];  level[7]  = dct[6]; 
+    level[0]  = dct[0]; level[1]  = dct[1];  level[2]  = dct[4];  level[3]  = dct[8];
+    level[4]  = dct[5]; level[5]  = dct[2];  level[6]  = dct[3];  level[7]  = dct[6];
     level[8]  = dct[9]; level[9]  = dct[12]; level[10] = dct[13]; level[11] = dct[10];
     level[12] = dct[7]; level[13] = dct[11]; level[14] = dct[14]; level[15] = dct[15];
-#else  
+#else
 
     /* load dct to registers */
-    S32LDD(xr1,dct,0x0);  
-    S32LDD(xr2,dct,0x4);  
+    S32LDD(xr1,dct,0x0);
+    S32LDD(xr2,dct,0x4);
     S32LDD(xr3,dct,0x8);
     S32LDD(xr4,dct,0xc);
     S32LDD(xr5,dct,0x10);
     S32LDD(xr6,dct,0x14);
-    S32LDD(xr7,dct,0x18);  
+    S32LDD(xr7,dct,0x18);
     S32LDD(xr8,dct,0x1c);  //14,15
 
     /* adjust to proper position  */
@@ -3104,7 +3104,7 @@ static void zigzag_scan_4x4_hw( int16_t level[16], const int16_t dct[16] )
     S32SFL(xr7,xr6, xr2,xr10,3);
     S32SFL(xr6,xr10,xr5,xr2, 3);
     S32SFL(xr5,xr2, xr3,xr10,3);
-   
+
     /* store to level */
     S32STD(xr1, level,0x0); //0,1
     S32STD(xr10,level,0x4); //4,8
@@ -3113,8 +3113,8 @@ static void zigzag_scan_4x4_hw( int16_t level[16], const int16_t dct[16] )
     S32STD(xr6, level,0x10);
     S32STD(xr4, level,0x14);
     S32STD(xr9, level,0x18);
-    S32STD(xr8, level,0x1c); 
-   
+    S32STD(xr8, level,0x1c);
+
 #endif
 }
 
@@ -3137,143 +3137,143 @@ static inline void zigzag_scan_2x2_dc_hw( int16_t level[4], const int16_t dct[4]
 
 #if 0
 void modified_res_order(x264_t *h, const unsigned int hw_cbp, const short *hw_res){
-	int i;
-	const short *mau_ptr = hw_res;
-	const unsigned int enc_ref_cbp = hw_cbp;
-	uint8_t *nnz = h->mb.cache.non_zero_count;
+        int i;
+        const short *mau_ptr = hw_res;
+        const unsigned int enc_ref_cbp = hw_cbp;
+        uint8_t *nnz = h->mb.cache.non_zero_count;
 
-	//int16_t dct4x4[16];
+        //int16_t dct4x4[16];
 
-	for ( i= 0 ; i < 16; i++ ){
-	  if ( (enc_ref_cbp>>i ) & 0x1 ){
-	    nnz[x264_scan8[i]] = 1;
+        for ( i= 0 ; i < 16; i++ ){
+          if ( (enc_ref_cbp>>i ) & 0x1 ){
+            nnz[x264_scan8[i]] = 1;
 #if 0
             int ii;
-	    int jj;
-	    for ( ii = 0 ; ii<4; ii++)
-	    {
-	      for ( jj = 0 ; jj < 4; jj++)
-	      {				
-		  dct4x4[4*ii+jj] = mau_ptr[ii+jj*4];
-	      }
-	    }
+            int jj;
+            for ( ii = 0 ; ii<4; ii++)
+            {
+              for ( jj = 0 ; jj < 4; jj++)
+              {
+                  dct4x4[4*ii+jj] = mau_ptr[ii+jj*4];
+              }
+            }
 
-	    h->zigzagf.scan_4x4( entropy_var_ptr->dct.luma4x4[i], dct4x4 );
+            h->zigzagf.scan_4x4( entropy_var_ptr->dct.luma4x4[i], dct4x4 );
 #endif//bypass transfer of hw result
 
-	    zigzag_scan_4x4_hw( h->dct.luma4x4[i], mau_ptr );
-	    mau_ptr += 16;
-	  }else{
-	    nnz[x264_scan8[i]] = 0;
-	  }
+            zigzag_scan_4x4_hw( h->dct.luma4x4[i], mau_ptr );
+            mau_ptr += 16;
+          }else{
+            nnz[x264_scan8[i]] = 0;
+          }
       }
 
 
       //ALIGNED_ARRAY_16( int16_t, dct_dc4x4,[16] );
       if ( (enc_ref_cbp >> MAU_Y_DC_DCT_SFT) & 0x1 ){
-	nnz[ x264_scan8[24] ] = 1;
-#if 0	
+        nnz[ x264_scan8[24] ] = 1;
+#if 0
         int ii;
-	int jj;
-	for ( ii = 0 ; ii<4; ii++)
-	  for ( jj = 0 ; jj < 4; jj++)
-	  {
-	      dct_dc4x4[4*ii+jj] = mau_ptr[ii+4*jj];
-	  }
+        int jj;
+        for ( ii = 0 ; ii<4; ii++)
+          for ( jj = 0 ; jj < 4; jj++)
+          {
+              dct_dc4x4[4*ii+jj] = mau_ptr[ii+4*jj];
+          }
 
         h->zigzagf.scan_4x4( entropy_var_ptr->dct.luma16x16_dc, dct_dc4x4 );
 #endif//bypass
-        
-        zigzag_scan_4x4_hw( h->dct.luma16x16_dc, mau_ptr ); 
-	mau_ptr += 16;
+
+        zigzag_scan_4x4_hw( h->dct.luma16x16_dc, mau_ptr );
+        mau_ptr += 16;
       }else{
-	 nnz[ x264_scan8[24] ] = 0;
+         nnz[ x264_scan8[24] ] = 0;
       }
 
 
       for ( i=16 ; i < 20; i++ ){
-	if ( (enc_ref_cbp>>i ) & 0x1 ){
-	  nnz[ x264_scan8[i] ] = 1;
-#if 0	 
+        if ( (enc_ref_cbp>>i ) & 0x1 ){
+          nnz[ x264_scan8[i] ] = 1;
+#if 0
           int ii;
-	  int jj;
-	  for ( ii = 0 ; ii<4; ii++)
-	    for ( jj = 0 ; jj < 4; jj++)
-	    {
-		dct4x4[4*ii+jj] = mau_ptr[4*jj+ii];
-	    }
+          int jj;
+          for ( ii = 0 ; ii<4; ii++)
+            for ( jj = 0 ; jj < 4; jj++)
+            {
+                dct4x4[4*ii+jj] = mau_ptr[4*jj+ii];
+            }
 
-	  h->zigzagf.scan_4x4( entropy_var_ptr->dct.luma4x4[i], dct4x4 );
+          h->zigzagf.scan_4x4( entropy_var_ptr->dct.luma4x4[i], dct4x4 );
 #endif//bypass
 
-	  zigzag_scan_4x4_hw( h->dct.luma4x4[i], mau_ptr );
-	  mau_ptr += 16;
-	}else{
-	  nnz[ x264_scan8[i] ] = 0;
-	}
+          zigzag_scan_4x4_hw( h->dct.luma4x4[i], mau_ptr );
+          mau_ptr += 16;
+        }else{
+          nnz[ x264_scan8[i] ] = 0;
+        }
       }
 
       //ALIGNED_ARRAY_16( int16_t, dct2x2,[4] );
       if ( (enc_ref_cbp >> MAU_U_DC_DCT_SFT) & 0x1 ){
-	nnz[ x264_scan8[25] ] = 1;
+        nnz[ x264_scan8[25] ] = 1;
 #if 0
-	int ii;
-	int jj;
-	for ( ii = 0 ;  ii<2; ii++)
-	  for ( jj = 0 ;  jj<2; jj++)
-	  {
-	    dct2x2[2*ii+jj] = mau_ptr[ii+2*jj];
-	  } 
+        int ii;
+        int jj;
+        for ( ii = 0 ;  ii<2; ii++)
+          for ( jj = 0 ;  jj<2; jj++)
+          {
+            dct2x2[2*ii+jj] = mau_ptr[ii+2*jj];
+          }
 
-	zigzag_scan_2x2_dc( entropy_var_ptr->dct.chroma_dc[0], dct2x2 );
+        zigzag_scan_2x2_dc( entropy_var_ptr->dct.chroma_dc[0], dct2x2 );
 #endif//bypass 2x2
 
-	zigzag_scan_2x2_dc_hw( h->dct.chroma_dc[0], mau_ptr );        
-	mau_ptr += 4;
+        zigzag_scan_2x2_dc_hw( h->dct.chroma_dc[0], mau_ptr );
+        mau_ptr += 4;
       }else{
-	nnz[ x264_scan8[25] ] = 0;
+        nnz[ x264_scan8[25] ] = 0;
       }
 
 
       for ( i=20 ; i < 24; i++ ){
-	if ( (enc_ref_cbp>>i ) & 0x1 ){
-	  nnz[ x264_scan8[i] ] = 1;
-#if 0	  
+        if ( (enc_ref_cbp>>i ) & 0x1 ){
+          nnz[ x264_scan8[i] ] = 1;
+#if 0
           int ii;
-	  int jj;
-	  for ( ii = 0 ; ii<4; ii++)
-	    for ( jj = 0 ; jj < 4; jj++)
-	    {
-	      dct4x4[4*ii+jj] = mau_ptr[4*jj+ii];
-	    }
+          int jj;
+          for ( ii = 0 ; ii<4; ii++)
+            for ( jj = 0 ; jj < 4; jj++)
+            {
+              dct4x4[4*ii+jj] = mau_ptr[4*jj+ii];
+            }
 
-	  h->zigzagf.scan_4x4( entropy_var_ptr->dct.luma4x4[i], dct4x4 );
+          h->zigzagf.scan_4x4( entropy_var_ptr->dct.luma4x4[i], dct4x4 );
 #endif//bypass
 
           zigzag_scan_4x4_hw( h->dct.luma4x4[i], mau_ptr );
-	  mau_ptr += 16;
-	}else{
-	  nnz[ x264_scan8[i] ] = 0;
-	}
-      }      
+          mau_ptr += 16;
+        }else{
+          nnz[ x264_scan8[i] ] = 0;
+        }
+      }
 
       if ( (enc_ref_cbp >> MAU_V_DC_DCT_SFT) & 0x1 ){
-	nnz[ x264_scan8[26] ] = 1;
+        nnz[ x264_scan8[26] ] = 1;
 #if 0
-	int ii;
-	int jj;
-	for ( ii = 0 ;  ii<2; ii++)
-	  for ( jj = 0 ;  jj<2; jj++)
-	  {
-	    dct2x2[2*ii+jj] = mau_ptr[ii+2*jj];
-	  }
-	zigzag_scan_2x2_dc( entropy_var_ptr->dct.chroma_dc[1], dct2x2 );
+        int ii;
+        int jj;
+        for ( ii = 0 ;  ii<2; ii++)
+          for ( jj = 0 ;  jj<2; jj++)
+          {
+            dct2x2[2*ii+jj] = mau_ptr[ii+2*jj];
+          }
+        zigzag_scan_2x2_dc( entropy_var_ptr->dct.chroma_dc[1], dct2x2 );
 #endif//bypass 2x2
 
-	zigzag_scan_2x2_dc_hw( h->dct.chroma_dc[1], mau_ptr );    
-	mau_ptr += 4;
+        zigzag_scan_2x2_dc_hw( h->dct.chroma_dc[1], mau_ptr );
+        mau_ptr += 4;
       }else{
-	nnz[ x264_scan8[26] ] = 0;
+        nnz[ x264_scan8[26] ] = 0;
       }
 
 }

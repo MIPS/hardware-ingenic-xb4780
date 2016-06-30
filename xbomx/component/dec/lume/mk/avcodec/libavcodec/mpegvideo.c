@@ -279,7 +279,7 @@ int ff_alloc_picture(MpegEncContext *s, Picture *pic, int shared){
         s->uvlinesize= pic->linesize[1];
     }
 
-    //printf("bbb%s,%s\n",__FILE__,__FUNCTION__);  
+    //printf("bbb%s,%s\n",__FILE__,__FUNCTION__);
 
     if(pic->qscale_table==NULL){
         if (s->encoding) {
@@ -288,106 +288,106 @@ int ff_alloc_picture(MpegEncContext *s, Picture *pic, int shared){
             FF_ALLOCZ_OR_GOTO(s->avctx, pic->mb_mean  , mb_array_size * sizeof(int8_t )  , fail)
         }
 
-	if (s->codec_id == CODEC_ID_H264){
+        if (s->codec_id == CODEC_ID_H264){
 #define SDE_FMV_ADS (1 << 8)
 #if 0
-	  pic->frm_info_ctrl_base = sde_frm_buffer +
-	  sde_frm_mv_cnt * ( mb_array_size*sizeof(uint32_t)*2 + SDE_FMV_ADS +
-			     mb_array_size*sizeof(uint32_t)*32 + SDE_FMV_ADS +
-			     sizeof(int32_t)*32);
-	  
-	  pic->frm_info_ctrl = (unsigned int)(pic->frm_info_ctrl_base + (SDE_FMV_ADS - 1)) & ~(SDE_FMV_ADS - 1);
+          pic->frm_info_ctrl_base = sde_frm_buffer +
+          sde_frm_mv_cnt * ( mb_array_size*sizeof(uint32_t)*2 + SDE_FMV_ADS +
+                             mb_array_size*sizeof(uint32_t)*32 + SDE_FMV_ADS +
+                             sizeof(int32_t)*32);
 
-	  
-	  pic->frm_info_mv_base = sde_frm_buffer +
-	    sde_frm_mv_cnt * ( mb_array_size*sizeof(uint32_t)*2 + SDE_FMV_ADS +
-			       mb_array_size*sizeof(uint32_t)*32 + SDE_FMV_ADS +
-			       sizeof(int32_t)*32) +
-	    (mb_array_size*sizeof(uint32_t)*2 + SDE_FMV_ADS);
-	  pic->frm_info_mv = (unsigned int)(pic->frm_info_mv_base + (SDE_FMV_ADS - 1)) & ~(SDE_FMV_ADS - 1);
-	  
-	  pic->frm_info_slice_start_mb_base = sde_frm_buffer +
-	    sde_frm_mv_cnt * ( mb_array_size*sizeof(uint32_t)*2 + SDE_FMV_ADS +
-			       mb_array_size*sizeof(uint32_t)*32 + SDE_FMV_ADS +
-			       sizeof(int32_t)*32) +
-	    (mb_array_size*sizeof(uint32_t)*2 + SDE_FMV_ADS +
-	     mb_array_size*sizeof(uint32_t)*32 + SDE_FMV_ADS);
-	  pic->frm_info_slice_start_mb = (unsigned int)(pic->frm_info_slice_start_mb_base);
+          pic->frm_info_ctrl = (unsigned int)(pic->frm_info_ctrl_base + (SDE_FMV_ADS - 1)) & ~(SDE_FMV_ADS - 1);
+
+
+          pic->frm_info_mv_base = sde_frm_buffer +
+            sde_frm_mv_cnt * ( mb_array_size*sizeof(uint32_t)*2 + SDE_FMV_ADS +
+                               mb_array_size*sizeof(uint32_t)*32 + SDE_FMV_ADS +
+                               sizeof(int32_t)*32) +
+            (mb_array_size*sizeof(uint32_t)*2 + SDE_FMV_ADS);
+          pic->frm_info_mv = (unsigned int)(pic->frm_info_mv_base + (SDE_FMV_ADS - 1)) & ~(SDE_FMV_ADS - 1);
+
+          pic->frm_info_slice_start_mb_base = sde_frm_buffer +
+            sde_frm_mv_cnt * ( mb_array_size*sizeof(uint32_t)*2 + SDE_FMV_ADS +
+                               mb_array_size*sizeof(uint32_t)*32 + SDE_FMV_ADS +
+                               sizeof(int32_t)*32) +
+            (mb_array_size*sizeof(uint32_t)*2 + SDE_FMV_ADS +
+             mb_array_size*sizeof(uint32_t)*32 + SDE_FMV_ADS);
+          pic->frm_info_slice_start_mb = (unsigned int)(pic->frm_info_slice_start_mb_base);
 #else
           pic->frm_info_ctrl_base=jz4740_alloc_frame(s->avctx->VpuMem_ptr,128, mb_array_size*sizeof(uint32_t)*2);
-	  pic->frm_info_ctrl = (unsigned int)(pic->frm_info_ctrl_base);
+          pic->frm_info_ctrl = (unsigned int)(pic->frm_info_ctrl_base);
           pic->frm_info_mv_base=jz4740_alloc_frame(s->avctx->VpuMem_ptr,128, mb_array_size*sizeof(uint32_t)*32);
-	  pic->frm_info_mv = (unsigned int)(pic->frm_info_mv_base);
-	  pic->frm_info_slice_start_mb_base = jz4740_alloc_frame (s->avctx->VpuMem_ptr,128, sizeof(int32_t)*32);
-	  pic->frm_info_slice_start_mb = (unsigned int)(pic->frm_info_slice_start_mb_base);
+          pic->frm_info_mv = (unsigned int)(pic->frm_info_mv_base);
+          pic->frm_info_slice_start_mb_base = jz4740_alloc_frame (s->avctx->VpuMem_ptr,128, sizeof(int32_t)*32);
+          pic->frm_info_slice_start_mb = (unsigned int)(pic->frm_info_slice_start_mb_base);
 #endif
-	  memset(pic->frm_info_slice_start_mb, 0, sizeof(int32_t)*32);
-	  
-	  sde_frm_mv_cnt++;
-	  
-	  if ( (sde_frm_mv_cnt * ( mb_array_size*sizeof(uint32_t)*2 + SDE_FMV_ADS +
-				   mb_array_size*sizeof(uint32_t)*32 + SDE_FMV_ADS +
-				   sizeof(int32_t)*32) ) > (1 << 23) ) {
-	    //printf(" !! ERROR !! \n");
-	    //#undef exit
-	    //exit(0);
-	  }
+          memset(pic->frm_info_slice_start_mb, 0, sizeof(int32_t)*32);
+
+          sde_frm_mv_cnt++;
+
+          if ( (sde_frm_mv_cnt * ( mb_array_size*sizeof(uint32_t)*2 + SDE_FMV_ADS +
+                                   mb_array_size*sizeof(uint32_t)*32 + SDE_FMV_ADS +
+                                   sizeof(int32_t)*32) ) > (1 << 23) ) {
+            //printf(" !! ERROR !! \n");
+            //#undef exit
+            //exit(0);
+          }
         } else if ( s->codec_id == CODEC_ID_VC1 || s->codec_id == CODEC_ID_WMV3 ) {
-	    av_log(NULL, AV_LOG_WARNING, "s->avctx->VpuMem_ptr = 0x%08x", s->avctx->VpuMem_ptr);
+            av_log(NULL, AV_LOG_WARNING, "s->avctx->VpuMem_ptr = 0x%08x", s->avctx->VpuMem_ptr);
             pic->frm_mv_addr = jz4740_alloc_frame(s->avctx->VpuMem_ptr, 256, (mb_array_size*sizeof(uint32_t)*2 + (1<<8)) );
-	    av_log(NULL, AV_LOG_WARNING, "pic->frm_mv_addr = 0x%08x", pic->frm_mv_addr);
-	    pic->frm_no_dir_mv = av_malloc(4);
-	    *(pic->frm_no_dir_mv) = 0x0;
-	}
+            av_log(NULL, AV_LOG_WARNING, "pic->frm_mv_addr = 0x%08x", pic->frm_mv_addr);
+            pic->frm_no_dir_mv = av_malloc(4);
+            *(pic->frm_no_dir_mv) = 0x0;
+        }
 
 
 #ifdef JZ_LINUX_OSN
-	pic->mbskip_table = jz4740_alloc_frame_k0(16, mb_array_size * sizeof(uint8_t)+2);
-        //pic->mbskip_table = jz4740_alloc_frame_k0(16, 0x100);   
-	//memset(pic->mbskip_table, 0, mb_array_size * sizeof(uint8_t)+2);
+        pic->mbskip_table = jz4740_alloc_frame_k0(16, mb_array_size * sizeof(uint8_t)+2);
+        //pic->mbskip_table = jz4740_alloc_frame_k0(16, 0x100);
+        //memset(pic->mbskip_table, 0, mb_array_size * sizeof(uint8_t)+2);
         //if (pic->mbskip_table == NULL) printf("----------------\n");
-	//memset(pic->mbskip_table, 0, 0x100);
+        //memset(pic->mbskip_table, 0, 0x100);
         //printf("88888888888888999999\n");
-	//exit_player_with_rc();        
+        //exit_player_with_rc();
 
         pic->qscale_table = jz4740_alloc_frame_k0(16, mb_array_size * sizeof(uint8_t));
         pic->mb_type_base = jz4740_alloc_frame_k0(16,(big_mb_num + s->mb_stride) * sizeof(uint32_t));
-        //printf("pic->mbskip_table = %x,%x,%x\n",pic->mbskip_table,pic->qscale_table,pic->mb_type_base);  
+        //printf("pic->mbskip_table = %x,%x,%x\n",pic->mbskip_table,pic->qscale_table,pic->mb_type_base);
 #else
         FF_ALLOCZ_OR_GOTO(s->avctx, pic->mbskip_table , mb_array_size * sizeof(uint8_t)+2, fail) //the +2 is for the slice end check
         FF_ALLOCZ_OR_GOTO(s->avctx, pic->qscale_table , mb_array_size * sizeof(uint8_t)  , fail)
         FF_ALLOCZ_OR_GOTO(s->avctx, pic->mb_type_base , (big_mb_num + s->mb_stride) * sizeof(uint32_t), fail)
 #endif
         pic->mb_type= pic->mb_type_base + 2*s->mb_stride+1;
-	//printf("ccc%s,%s\n",__FILE__,__FUNCTION__);
-        
+        //printf("ccc%s,%s\n",__FILE__,__FUNCTION__);
+
         if(s->out_format == FMT_H264){
 #ifdef PROFILE_3DOT0_ABOVE_OPT
-	    if(s->level_3dot0_above){
-	      int mb8_by_mbstride=s->mb_stride*2*s->mb_height*2;
-	      pic->motion_3dot0_above=jz4740_alloc_frame_k0(32,2 * mb8_by_mbstride * sizeof(int32_t));
-	      pic->ref_3dot0_above=jz4740_alloc_frame_k0(32,2 * mb8_by_mbstride * sizeof(uint8_t));
-	    }
-	    else
+            if(s->level_3dot0_above){
+              int mb8_by_mbstride=s->mb_stride*2*s->mb_height*2;
+              pic->motion_3dot0_above=jz4740_alloc_frame_k0(32,2 * mb8_by_mbstride * sizeof(int32_t));
+              pic->ref_3dot0_above=jz4740_alloc_frame_k0(32,2 * mb8_by_mbstride * sizeof(uint8_t));
+            }
+            else
 #endif
             for(i=0; i<2; i++){
 #ifdef JZ_LINUX_OSn
-	      pic->motion_val_base[i] = jz4740_alloc_frame_k0(16,2 * (b4_array_size+4)  * sizeof(int16_t));
+              pic->motion_val_base[i] = jz4740_alloc_frame_k0(16,2 * (b4_array_size+4)  * sizeof(int16_t));
               pic->motion_val[i]= pic->motion_val_base[i]+4;
-	      pic->ref_index[i] = jz4740_alloc_frame_k0(16,4*mb_array_size * sizeof(uint8_t));
+              pic->ref_index[i] = jz4740_alloc_frame_k0(16,4*mb_array_size * sizeof(uint8_t));
 #else
-	      FF_ALLOCZ_OR_GOTO(s->avctx, pic->motion_val_base[i], 2 * (b4_array_size+4)  * sizeof(int16_t), fail)
+              FF_ALLOCZ_OR_GOTO(s->avctx, pic->motion_val_base[i], 2 * (b4_array_size+4)  * sizeof(int16_t), fail)
               pic->motion_val[i]= pic->motion_val_base[i]+4;
-	      FF_ALLOCZ_OR_GOTO(s->avctx, pic->ref_index[i], 4*mb_array_size * sizeof(uint8_t), fail)
+              FF_ALLOCZ_OR_GOTO(s->avctx, pic->ref_index[i], 4*mb_array_size * sizeof(uint8_t), fail)
 #endif
             }
             pic->motion_subsample_log2= 2;
         }else if(s->out_format == FMT_H263 || s->encoding || (s->avctx->debug&FF_DEBUG_MV) || (s->avctx->debug_mv)){
             for(i=0; i<2; i++){
 #ifdef JZ_LINUX_OSn
-	        pic->motion_val_base[i] = jz4740_alloc_frame_k0(16,2 * (b8_array_size+4)  * sizeof(int16_t));
+                pic->motion_val_base[i] = jz4740_alloc_frame_k0(16,2 * (b8_array_size+4)  * sizeof(int16_t));
                 pic->motion_val[i]= pic->motion_val_base[i]+4;
-	        pic->ref_index[i] = jz4740_alloc_frame_k0(16,4*mb_array_size * sizeof(uint8_t));
+                pic->ref_index[i] = jz4740_alloc_frame_k0(16,4*mb_array_size * sizeof(uint8_t));
 #else
                 FF_ALLOCZ_OR_GOTO(s->avctx, pic->motion_val_base[i], 2 * (b8_array_size+4) * sizeof(int16_t), fail)
                 pic->motion_val[i]= pic->motion_val_base[i]+4;
@@ -446,7 +446,7 @@ static void free_picture(MpegEncContext *s, Picture *pic){
     av_freep(&pic->dct_coeff);
     av_freep(&pic->pan_scan);
     pic->mb_type= NULL;
-    
+
 
     if(pic->type == FF_BUFFER_TYPE_SHARED){
         for(i=0; i<4; i++){
@@ -1078,10 +1078,10 @@ int MPV_frame_start(MpegEncContext *s, AVCodecContext *avctx)
         }
 
         pic->coded_picture_number= s->coded_picture_number++;
-        //printf("333%s,%s\n",__FILE__,__FUNCTION__);   
+        //printf("333%s,%s\n",__FILE__,__FUNCTION__);
         if(ff_alloc_picture(s, pic, 0) < 0)
             return -1;
-	//printf("666%s,%s\n",__FILE__,__FUNCTION__); 
+        //printf("666%s,%s\n",__FILE__,__FUNCTION__);
         s->current_picture_ptr= pic;
         //FIXME use only the vars from current_pic
         if(s->codec_id == CODEC_ID_MPEG1VIDEO || s->codec_id == CODEC_ID_MPEG2VIDEO) {
@@ -1421,7 +1421,7 @@ void ff_print_debug_info(MpegEncContext *s, AVFrame *pict){
             int mb_x;
             for(mb_x=0; mb_x<s->mb_width; mb_x++){
                 const int mb_index= mb_x + mb_y*s->mb_stride;
-                if((s->avctx->debug_mv) && pict->motion_val){
+                if((s->avctx->debug_mv) && pict->motion_val[0] && pict->motion_val[1]){
                   int type;
                   for(type=0; type<3; type++){
                     int direction = 0;
@@ -1490,7 +1490,7 @@ void ff_print_debug_info(MpegEncContext *s, AVFrame *pict){
                     }
                   }
                 }
-                if((s->avctx->debug&FF_DEBUG_VIS_QP) && pict->motion_val){
+                if((s->avctx->debug&FF_DEBUG_VIS_QP) && pict->motion_val[0] && pict->motion_val[1]){
                     uint64_t c= (pict->qscale_table[mb_index]*128/31) * 0x0101010101010101ULL;
                     int y;
                     for(y=0; y<block_height; y++){
@@ -1498,7 +1498,7 @@ void ff_print_debug_info(MpegEncContext *s, AVFrame *pict){
                         *(uint64_t*)(pict->data[2] + 8*mb_x + (block_height*mb_y + y)*pict->linesize[2])= c;
                     }
                 }
-                if((s->avctx->debug&FF_DEBUG_VIS_MB_TYPE) && pict->motion_val){
+                if((s->avctx->debug&FF_DEBUG_VIS_MB_TYPE) && pict->motion_val[0] && pict->motion_val[1]){
                     int mb_type= pict->mb_type[mb_index];
                     uint64_t u,v;
                     int y;
