@@ -9,6 +9,8 @@ PRODUCT_COPY_FILES += \
 	$(GPU_SGX540_LOCAL_PATH)/libsrv_init.so:$(TARGET_COPY_OUT_VENDOR)/lib/libsrv_init.so                   \
 	$(GPU_SGX540_LOCAL_PATH)/libsrv_um.so:$(TARGET_COPY_OUT_VENDOR)/lib/libsrv_um.so                       \
 	$(GPU_SGX540_LOCAL_PATH)/libusc.so:$(TARGET_COPY_OUT_VENDOR)/lib/libusc.so                             \
+	$(GPU_SGX540_LOCAL_PATH)/libdbm.so:$(TARGET_COPY_OUT_VENDOR)/lib/libdbm.so                             \
+	$(GPU_SGX540_LOCAL_PATH)/libcreatesurface.so:$(TARGET_COPY_OUT_VENDOR)/lib/libcreatesurface.so         \
 	$(GPU_SGX540_LOCAL_PATH)/hw/gralloc.xxx.so:$(TARGET_COPY_OUT_VENDOR)/lib/hw/gralloc.xb4780.so          \
 	$(GPU_SGX540_LOCAL_PATH)/hw/hwcomposer.xxx.so:$(TARGET_COPY_OUT_VENDOR)/lib/hw/hwcomposer.xb4780.so    \
 	$(GPU_SGX540_LOCAL_PATH)/hw/memtrack.xxx.so:$(TARGET_COPY_OUT_VENDOR)/lib/hw/memtrack.xb4780.so        \
