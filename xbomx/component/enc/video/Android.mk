@@ -62,6 +62,8 @@ LOCAL_CFLAGS := \
 
 LOCAL_CFLAGS += $(STAGEFRIGHT_FLAGS) -I$(TOP)/frameworks/av/media/libstagefright/lume/libjzcommon/
 
+LOCAL_CFLAGS += -Wno-error=int-conversion -Wno-error=date-time
+
 LOCAL_SHARED_LIBRARIES := \
         libstagefright_foundation \
         libstagefright_hard_vlume \

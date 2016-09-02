@@ -5,7 +5,7 @@ XBOMX_FLAGS := -D_GNU_SOURCE -DIPU_4780BUG_ALIGN=2048
 AV_INCLUDES := $(TOP)/frameworks/av/include/
 LUME_TOP := $(LOCAL_PATH)
 
-PV_CFLAGS := -DUSE_IPU_THROUGH_MODE $(XBOMX_FLAGS)
+PV_CFLAGS := -DUSE_IPU_THROUGH_MODE $(XBOMX_FLAGS) -Wno-error=int-conversion
 
 include $(LUME_TOP)/mk/avutil/Android.mk
 include $(LUME_TOP)/mk/avcore/Android.mk
