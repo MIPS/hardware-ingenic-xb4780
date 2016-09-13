@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2015 Ingenic Semiconductor Co.,Ltd. All Rights Reserved.
+ *
+ * Website:www.ingenic.com
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sub license, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice (including the
+ * next paragraph) shall be included in all copies or substantial portions
+ * of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+ * IN NO EVENT SHALL PRECISION INSIGHT AND/OR ITS SUPPLIERS BE LIABLE FOR
+ * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 /* hardware/xb4770/libjzipu/android_jz4780_ipu.c
  *
  * Copyright (c) 2012 Ingenic Semiconductor Co., Ltd.
@@ -8,12 +33,14 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
-*/
+ *
+ * Authors:
+ *    liuyang <king.lyang@ingenic.com>
+ */
 
 #define LOG_TAG "JzIPUHardware"
 #include <utils/Log.h>
 #include <linux/fb.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -94,13 +121,13 @@ static void dump_ipu_img_param(struct ipu_img_param *t)
 int isOsd2LayerMode(struct ipu_image_info *ipu_img)
 {
 	struct dest_data_info *dst;
-	
+
 	dst = &ipu_img->dst_info;
 
-	if ((dst->dst_mode & IPU_OUTPUT_TO_LCD_FG1) && 
-		!(dst->dst_mode & IPU_OUTPUT_MODE_FG0_OFF)) 
+	if ((dst->dst_mode & IPU_OUTPUT_TO_LCD_FG1) &&
+			!(dst->dst_mode & IPU_OUTPUT_MODE_FG0_OFF))
 		return 1;
-	
+
 	return 0;
 }
 
@@ -129,10 +156,10 @@ static int get_fbaddr_info(struct ipu_native_info *ipu_info)
 		}
 		if (i == 0) {
 			ret = ioctl(info[i]->fbfd, JZFB_GET_LCDC_ID,
-				    &ipu_info->fb0_lcdc_id);
+					&ipu_info->fb0_lcdc_id);
 			if (ret < 0) {
 				ALOGE("%s get %s LCDC ID failed! fd: %d\n",
-				     __func__, fb_name, info[i]->fbfd);
+						__func__, fb_name, info[i]->fbfd);
 				return -1;
 			}
 		}
@@ -151,7 +178,7 @@ static int mvom_lcd_init(struct ipu_native_info *ipu_info)
 		}
 	}
 
-	return get_fbaddr_info(ipu_info);
+	return 0;
 }
 
 static int mvom_lcd_exit(struct ipu_native_info *ipu_info)
@@ -177,7 +204,6 @@ static int mvom_lcd_exit(struct ipu_native_info *ipu_info)
 static int ipu_prepare_tables(struct ipu_native_info *ipu, int *outWp, int *outHp, int *Wdiff, int *Hdiff)
 {
 	int i;
-	int fb_index;
 	int W = 0, H = 0, Hsel = 0, Wsel = 0;
 	int srcN, dstM, width_up, height_up;
 	int Height_lut_max, Width_lut_max;
@@ -188,19 +214,13 @@ static int ipu_prepare_tables(struct ipu_native_info *ipu, int *outWp, int *outH
 	int way_sel;
 	double CUBE_LEVEL;
 	unsigned int rsize_w = 0, rsize_h = 0;
-	unsigned int fb_w, fb_h;
 	struct ipu_img_param *img;
 	struct Ration2m *ipu_ratio_table;
-
-//	ALOGD("Enter: %s", __FUNCTION__);
 
 	if (ipu == NULL) {
 		return -1;
 	}
 
-	fb_index = ipu->fb0_lcdc_id ? ipu->id : (!ipu->id & 0x1);
-	fb_w = ipu->fb_data[fb_index]->fbvar.xres;
-	fb_h = ipu->fb_data[fb_index]->fbvar.yres;
 	ipu_ratio_table = ipu->ipu_ratio_table;
 	img = &ipu->img;
 
@@ -213,23 +233,15 @@ static int ipu_prepare_tables(struct ipu_native_info *ipu, int *outWp, int *outH
 	} else if (img->output_mode & IPU_OUTPUT_TO_LCD_FG1) {
 		{
 			int x = img->out_x;
-			if ( x > (int)fb_w )
-				x = fb_w - 128;
 			img->out_x = x;
 
 			int w = img->out_width;
-			if ( w + x > (int)fb_w )
-				w = fb_w - x;
 			img->out_width = w;
 
 			int y = img->out_y;
-			if ( y > (int)fb_h )
-				y = fb_h - 128;
 			img->out_y = y;
 
 			int h = img->out_height;
-			if ( h + y > (int)fb_h )
-				h = fb_h - y;
 			img->out_height = h;
 		}
 		rsize_w = img->out_width;
@@ -289,7 +301,7 @@ static int ipu_prepare_tables(struct ipu_native_info *ipu, int *outWp, int *outH
 			way_sel = 0;
 		} else
 			way_sel = 1;
-		
+
 		if(ipu->sinxdivx_table_inited == 0) {
 			memset((void*)ipu->sinxdivx_table_8, 0, sizeof(ipu->sinxdivx_table_8));
 			_inti_sinxdivx_table(ipu, CUBE_LEVEL);
@@ -299,7 +311,6 @@ static int ipu_prepare_tables(struct ipu_native_info *ipu, int *outWp, int *outH
 		caculate_cube_coef_table(ipu, way_sel);
 	}
 
-//	ALOGD("Exit: %s", __FUNCTION__);
 	return (0);
 }
 
@@ -307,29 +318,29 @@ static int jz47_ipu_fg1_init(struct ipu_native_info * ipu)
 {
 	int ret;
 	struct ipu_img_param *img;
-	
+
 	if (ipu == NULL) {
 		ALOGD("ipu is NULL!\n");
 		return -1;
 	}
-	
+
 	img = &ipu->img;
 
 	if (img->output_mode & IPU_OUTPUT_MODE_FG1_TVOUT) {
-		ipu->fb_data[ipu->id]->fb_width = ipu->fb_data[ipu->id]->fb_osd.fg1.w; 
+		ipu->fb_data[ipu->id]->fb_width = ipu->fb_data[ipu->id]->fb_osd.fg1.w;
 		ipu->fb_data[ipu->id]->fb_height = ipu->fb_data[ipu->id]->fb_osd.fg1.h;
 		img->out_x = ipu->fb_data[ipu->id]->fb_osd.fg1.x;
 		img->out_y = ipu->fb_data[ipu->id]->fb_osd.fg1.y;
 		img->out_width = ipu->fb_data[ipu->id]->fb_osd.fg1.w;
 		img->out_height = ipu->fb_data[ipu->id]->fb_osd.fg1.h;
 	} else {
-		ipu->fb_data[ipu->id]->fb_width = ipu->fb_data[ipu->id]->fb_osd.fg1.w; 
+		ipu->fb_data[ipu->id]->fb_width = ipu->fb_data[ipu->id]->fb_osd.fg1.w;
 		if (ipu->fb_data[ipu->id]->fb_osd.fg1.h <= ipu->fb_data[ipu->id]->fb_osd.fg0.h) {
 			ipu->fb_data[ipu->id]->fb_width = ipu->fb_data[ipu->id]->fb_osd.fg1.h;
-		} else { 
+		} else {
 			ipu->fb_data[ipu->id]->fb_width = ipu->fb_data[ipu->id]->fb_osd.fg0.h;
 		}
-		
+
 		if (ipu->fb_data[ipu->id]->fb_osd.fg0.x > 0) {
 			img->out_x = img->out_x + ipu->fb_data[ipu->id]->fb_osd.fg0.x;
 		}
@@ -337,18 +348,18 @@ static int jz47_ipu_fg1_init(struct ipu_native_info * ipu)
 			img->out_y = img->out_y + ipu->fb_data[ipu->id]->fb_osd.fg0.y;
 		}
 
-		if (img->out_x > ipu->fb_data[ipu->id]->fb_width || 
-			img->out_y > ipu->fb_data[ipu->id]->fb_height) {
+		if (img->out_x > ipu->fb_data[ipu->id]->fb_width ||
+				img->out_y > ipu->fb_data[ipu->id]->fb_height) {
 			ALOGD("*** jz47xx ipu dest rect out range error.\n");
 			return -1;
 		}
-		
+
 		if (img->out_x + img->out_width > ipu->fb_data[ipu->id]->fb_width)
 			img->out_width = ipu->fb_data[ipu->id]->fb_width - img->out_x;
 		if (img->out_y + img->out_height > ipu->fb_data[ipu->id]->fb_height)
-			img->out_height = ipu->fb_data[ipu->id]->fb_height - img->out_y;		
+			img->out_height = ipu->fb_data[ipu->id]->fb_height - img->out_y;
 	}
-		
+
 	return 0;
 }
 
@@ -356,7 +367,6 @@ static int jz47_ipu_init(struct ipu_image_info *ipu_img)
 {
 	int ret = 0;
 
-//	ALOGD("Enter: %s", __FUNCTION__);
 	if (ipu_img == NULL) {
 		ALOGD("ipu_img is NULL\n");
 		return -1;
@@ -376,7 +386,6 @@ static int jz47_ipu_init(struct ipu_image_info *ipu_img)
 	img->out_height = dst->height;
 	img->in_fmt = src->fmt;
 	img->out_fmt = dst->fmt;
-	//img->lcdc_id = dst->lcdc_id; /* no used */
 
 	img->in_bpp = 16;
 	img->stride.y = src->srcBuf.y_stride;
@@ -387,21 +396,32 @@ static int jz47_ipu_init(struct ipu_image_info *ipu_img)
 	img->output_mode = dst->dst_mode;
 	img->alpha = dst->alpha;
 	img->colorkey = dst->colorkey;
-	img->src_page_mapping = 1;
-	img->dst_page_mapping = 1;
 	img->stlb_base = src->stlb_base;
 	img->dtlb_base = dst->dtlb_base;
+
+	ALOGD("stlb_base = 0x%x, dtlb_base = 0x%x",src->stlb_base, dst->dtlb_base);
+
+	if(img->stlb_base != 0){
+		img->src_page_mapping = 1;
+	}
+	if(img->dtlb_base != 0){
+		img->dst_page_mapping = 1;
+	}
+
 	if (img->in_height/img->out_height > 3) {
 		img->zoom_mode = ZOOM_MODE_BILINEAR; /* 0 bilinear, 1 bicube, 2 enhance bilinear*/
-	} else {	
+	} else {
 		img->zoom_mode = ZOOM_MODE_BICUBE; /* 0 bilinear, 1 bicube, 2 enhance bilinear*/
 	}
+#if 1
 	ipu_prepare_tables(ipu, (int *)&img->out_width, (int *)&img->out_height, &img->Wdiff, &img->Hdiff);
 	gen_pic_enhance_table(ipu, 128);
 
-	jz47_dump_ipu_resize_table(ipu, -1); /* cube coef*/
+#ifdef IPU_DBG
+	jz47_dump_ipu_resize_table(ipu, -1); /* cube coef */
 	jz47_dump_ipu_resize_table(ipu, -3); /* linear oft coed */
-	
+#endif
+
 	img->hoft_table = ipu->hoft_table;
 	img->voft_table = ipu->voft_table;
 
@@ -412,38 +432,10 @@ static int jz47_ipu_init(struct ipu_image_info *ipu_img)
 	img->vcoef_table = ipu->vcoef_table;
 
 	img->pic_enhance_table = ipu->pic_enhance_table;
-
-//	dump_ipu_img_param(img);
-
-	if (img->output_mode & IPU_OUTPUT_TO_LCD_FG1) {
-//		LOGD("mg->output_mode & IPU_OUTPUT_TO_LCD_FG1\n");
-		if (!(img->output_mode & IPU_OUTPUT_MODE_FG0_OFF)) {
-			/* enable compress decompress mode */
-			//ret = ioctl();
-		}
-		//ret = jz47_ipu_fg1_init(ipu);
-		if (ret < 0) {
-			ALOGD("jz47_ipu_fg1_init failed\n");
-			return -1;
-		}
-	} else {
-		/*
-		 * IPU write back to buffer need to get the ipu bus first. And the bus is 
-		 *  control by register LCDC_DUAL_CTRL (bit 8) of LCDC 1.
-		 *  Default: IPU controller 0 get the bus.
-		 */
-		int ipu_to_buf = ipu->id ? 1 : 0;
-		int fb_index;
-		ALOGE("++++ipu->id: %d, ipu_to_buf: %d", ipu->id, ipu_to_buf);
-
-		fb_index = ipu->fb0_lcdc_id ? 0 : 1;
-		ret = ioctl(ipu->fb_data[fb_index]->fbfd, JZFB_IPU0_TO_BUF, &ipu_to_buf);
-		if (ret < 0) {
-			ALOGD("enable IPU %d to buf failed\n", ipu->id);
-			return -1;
-		}
-	}
-
+#endif
+#ifdef IPU_DBG
+	dump_ipu_img_param(img);
+#endif
 	ret = ioctl(ipu->ipu_fd, IOCTL_IPU_INIT, (void *)img);
 	if (ret < 0) {
 		ALOGD("ipu first init failed\n");
@@ -452,8 +444,6 @@ static int jz47_ipu_init(struct ipu_image_info *ipu_img)
 
 	ipu->state &= ~IPU_STATE_STARTED;
 
-//	ALOGD("Exit: %s", __FUNCTION__);
-
 	return ret;
 }
 
@@ -461,7 +451,6 @@ static int jz47_put_image(struct ipu_image_info *ipu_img, struct ipu_data_buffer
 {
 	int ret;
 
-//	ALOGD("Enter: %s", __FUNCTION__);
 	if (ipu_img == NULL) {
 		ALOGD("ipu_img is NULL\n");
 		return -1;
@@ -498,6 +487,9 @@ static int jz47_put_image(struct ipu_image_info *ipu_img, struct ipu_data_buffer
 			img->stride.out = (dst->dstBuf.y_stride);
 		}
 	}
+#ifdef IPU_DBG
+	dump_ipu_img_param(img);
+#endif
 
 	ALOGV("img->y_buf_v: %08x, img->u_buf_v: %08x, img->v_buf_v: %08x, img->stride.y: %d, img->stride.u: %d, img->stride.v: %d", (unsigned int)img->y_buf_v, (unsigned int)img->u_buf_v, (unsigned int)img->v_buf_v, img->stride.y, img->stride.u, img->stride.v);
 
@@ -507,7 +499,6 @@ static int jz47_put_image(struct ipu_image_info *ipu_img, struct ipu_data_buffer
 		return ret;
 	}
 
-//	ALOGD("Exit: %s", __FUNCTION__);
 	return 0;
 }
 
@@ -519,8 +510,8 @@ int alloc_img_info(struct ipu_image_info **ipu_img_p)
 
 	ipu_img = *ipu_img_p;
 	if (ipu_img == NULL) {
-		ipu_img = (struct ipu_image_info *)calloc(sizeof(struct ipu_image_info) + 
-												  sizeof(struct ipu_native_info), sizeof(char));
+		ipu_img = (struct ipu_image_info *)calloc(sizeof(struct ipu_image_info) +
+				sizeof(struct ipu_native_info), sizeof(char));
 		if (ipu_img == NULL) {
 			ALOGE("ipu_open() no mem.\n");
 			return -1;
@@ -532,8 +523,6 @@ int alloc_img_info(struct ipu_image_info **ipu_img_p)
 	ipu = (struct ipu_native_info *)ipu_img->native_data;
 	img = &ipu->img;
 	img->version = sizeof(struct ipu_img_param);
-	mvom_lcd_init(ipu);
-	
 	return 0;
 }
 
@@ -549,7 +538,6 @@ static void free_img_info(struct ipu_image_info **ipu_img_p)
 	}
 
 	ipu = (struct ipu_native_info *)ipu_img->native_data;
-	mvom_lcd_exit(ipu);
 	free(ipu_img);
 	ipu_img = NULL;
 	*ipu_img_p = ipu_img;
@@ -566,7 +554,6 @@ void set_open_state(struct ipu_native_info *ipu, int fd)
 int open_ipu1(struct ipu_image_info **ipu_img_p)
 {
 	int fd, ret;
-	int fb_index;
 	int clk_en = 0;
 	struct ipu_native_info *ipu;
 	struct dest_data_info *dst;
@@ -582,7 +569,7 @@ int open_ipu1(struct ipu_image_info **ipu_img_p)
 	}
 	ipu = (struct ipu_native_info *)(* ipu_img_p)->native_data;
 	dst = &((*ipu_img_p)->dst_info);
-	
+
 	if ((fd = open(IPU1_DEVNAME, O_RDONLY)) < 0) {
 		ALOGE("%s open ipu1 failed! fd: %d\n", __func__, fd);
 		return fd;
@@ -596,10 +583,9 @@ int open_ipu1(struct ipu_image_info **ipu_img_p)
 	set_open_state(ipu, fd);
 	android_atomic_inc(&ipu1_open_cnt);
 	ipu->id = 1;
-	fb_index = ipu->fb0_lcdc_id ? 1 : 0;
 
 	clk_en = 1;
-	ret = ioctl(ipu->fb_data[fb_index]->fbfd, JZFB_ENABLE_IPU_CLK, &clk_en);
+	ret = ioctl(ipu->ipu_fd, IOCTL_IPU_ENABLE_CLK, &clk_en);
 	if (ret < 0) {
 		ALOGD("enable IPU %d clock failed\n", ipu->id);
 		return -1;
@@ -609,21 +595,9 @@ int open_ipu1(struct ipu_image_info **ipu_img_p)
 }
 
 /* alloc a ipu_image_info structure */
-/*
- * Note:
- * "/dev/ipu0" == IPU 1; "/dev/ipu1" == IPU 0
- *
- * fb0_lcdc_id store the LCDC ID of "/dev/graphics/fb0".
- * fb0_lcdc_id == 1:
- * "/dev/graphics/fb0" == LCDC 1; "/dev/graphics/fb1" == LCDC 0
- *
- * fb0_lcdc_id == 0:
- * "/dev/graphics/fb0" == LCDC 0; "/dev/graphics/fb1" == LCDC 1
- */
 int ipu_open(struct ipu_image_info **ipu_img_p)
 {
 	int ret, fd;
-	int fb_index;
 	int clk_en = 0;
 	struct ipu_native_info *ipu;
 	struct dest_data_info *dst;
@@ -649,37 +623,21 @@ int ipu_open(struct ipu_image_info **ipu_img_p)
 
 	if ((ret = ioctl(fd, IOCTL_IPU_SET_BYPASS)) < 0) {
 		close(fd);
-		if ((fd = open(IPU1_DEVNAME, O_RDONLY)) < 0) {
-			ALOGD("open ipu1 failed!\n");
-			free_img_info(ipu_img_p);
-			return -1;
-		}
-		if ((ret = ioctl(fd, IOCTL_IPU_SET_BYPASS)) < 0) {
-			ALOGD("IOCTL_IPU_SET_BYPASS failed! no free ipu\n");
-			free_img_info(ipu_img_p);
-			return -1;
-		}
-
-		ipu->id = 1;
-		fb_index = ipu->fb0_lcdc_id ? 1 : 0;
-		android_atomic_inc(&ipu1_open_cnt);
 	} else {
 		ipu->id = 0;
-		fb_index = ipu->fb0_lcdc_id ? 0 : 1;
 		android_atomic_inc(&ipu0_open_cnt);
 	}
-	
+
 	set_open_state(ipu, fd);
 
 	clk_en = 1;
-	ret = ioctl(ipu->fb_data[fb_index]->fbfd, JZFB_ENABLE_IPU_CLK, &clk_en);
+	ret = ioctl(ipu->ipu_fd, IOCTL_IPU_ENABLE_CLK, &clk_en);
 	if (ret < 0) {
 		ALOGD("enable IPU %d clock failed\n", ipu->id);
 		free_img_info(ipu_img_p);
 		return -1;
 	}
 
-//	ALOGD("ipu_img addr= %p", ipu_img);
 	ALOGV("Exit: %s", __FUNCTION__);
 
 	return fd;
@@ -697,11 +655,6 @@ int ipu_init(struct ipu_image_info * ipu_img)
 
 	ipu = (struct ipu_native_info *)ipu_img->native_data;
 	img = &ipu->img;
-
-	if (ipu->state & IPU_STATE_STARTED) {
-		//ALOGD("RESET IPU, STOP IPU FIRST.");
-		//ipu_stop(ipu_img);
-	}
 
 	ret = jz47_ipu_init(ipu_img);
 	if (ret < 0) {
@@ -728,8 +681,9 @@ int ipu_start(struct ipu_image_info * ipu_img)
 	struct ipu_native_info * ipu = (struct ipu_native_info *)ipu_img->native_data;
 	struct ipu_img_param * img = &ipu->img;
 
-//	dump_ipu_img_param(img);
+
 #ifdef IPU_DBG
+	dump_ipu_img_param(img);
 	ret = ioctl(ipu->ipu_fd, IOCTL_IPU_DUMP_REGS, img);
 	if (ret < 0) {
 		ALOGD("IOCTL_IPU_DUMP_REGS failed\n");
@@ -737,12 +691,13 @@ int ipu_start(struct ipu_image_info * ipu_img)
 	}
 #endif
 
+#ifndef NO_START_IPU
 	ret = ioctl(ipu->ipu_fd, IOCTL_IPU_START, img);
 	if (ret < 0) {
 		ALOGD("IOCTL_IPU_START failed\n");
 		return -1;
 	}
-
+#endif
 	ipu->state &= ~IPU_STATE_STOPED;
 	ipu->state |= IPU_STATE_STARTED;
 	ALOGV("Exit: %s", __FUNCTION__);
@@ -754,6 +709,7 @@ int ipu_stop(struct ipu_image_info * ipu_img)
 {
 	int ret;
 
+	ALOGD("Enter: %s", __FUNCTION__);
 	if (ipu_img == NULL) {
 		ALOGD("ipu_img is NULL!\n");
 		return -1;
@@ -776,13 +732,13 @@ int ipu_stop(struct ipu_image_info * ipu_img)
 	ipu->state &= ~IPU_STATE_STARTED;
 	ipu->state |= IPU_STATE_STOPED;
 
+	ALOGD("Exit: %s\n", __FUNCTION__);
 	return ret;
 }
 
 int ipu_close(struct ipu_image_info ** ipu_img_p)
 {
 	int ret;
-	int fb_index;
 	int clk_en = 0;
 	int ipu_to_buf = 0;
 	struct ipu_image_info *ipu_img;
@@ -821,48 +777,25 @@ int ipu_close(struct ipu_image_info ** ipu_img_p)
 		return -1;
 	}
 
-	if (ipu->ipu_fd)
-		close(ipu->ipu_fd);
-
-	if (1 == ipu->id) {
-		if (ipu1_open_cnt)
-			android_atomic_dec(&ipu1_open_cnt);
-		fb_index = ipu->fb0_lcdc_id ? 0 : 1;
-		ret = ioctl(ipu->fb_data[fb_index]->fbfd, JZFB_IPU0_TO_BUF, &ipu_to_buf);
+	if (ipu0_open_cnt)
+		android_atomic_dec(&ipu0_open_cnt);
+	/* If IPU0 is idle then Close the IPU clock */
+	if (!ipu0_open_cnt) {
+		ret = ioctl(ipu->ipu_fd, IOCTL_IPU_ENABLE_CLK, &clk_en);
 		if (ret < 0) {
-			ALOGD("enable IPU %d to buf failed\n", ipu->id);
+			ALOGD("Disable IPU %d clock failed", ipu->id);
 			free_img_info(ipu_img_p);
 			return -1;
-		}
-		fb_index = ipu->fb0_lcdc_id ? 1 : 0;
-		/* If IPU1 is idle then Close the IPU clock */
- 		if (!ipu1_open_cnt) {
-			ret = ioctl(ipu->fb_data[fb_index]->fbfd, JZFB_ENABLE_IPU_CLK, &clk_en);
-			if (ret < 0) {
-				ALOGD("Disable IPU %d clock failed\n", ipu->id);
-				free_img_info(ipu_img_p);
-				return -1;
-			}
-		}
-	} else {
-		if (ipu0_open_cnt)
-			android_atomic_dec(&ipu0_open_cnt);
-		fb_index = ipu->fb0_lcdc_id ? 0 : 1;
-		/* If IPU0 is idle then Close the IPU clock */
- 		if (!ipu0_open_cnt) {
-			ret = ioctl(ipu->fb_data[fb_index]->fbfd, JZFB_ENABLE_IPU_CLK, &clk_en);
-			if (ret < 0) {
-				ALOGD("Disable IPU %d clock failed\n", ipu->id);
-				free_img_info(ipu_img_p);
-				return -1;
-			}
 		}
 	}
 
 	ipu->state = IPU_STATE_CLOSED;
 	free_img_info(ipu_img_p);
 
-	ALOGV("Exit: %s", __FUNCTION__);
+	if (ipu->ipu_fd)
+		close(ipu->ipu_fd);
+
+	ALOGD("Exit: %s", __FUNCTION__);
 	return ret;
 }
 
@@ -885,9 +818,8 @@ int ipu_postBuffer(struct ipu_image_info* ipu_img)
 	struct ipu_native_info * ipu = (struct ipu_native_info*)ipu_img->native_data;
 	struct ipu_img_param * img = &ipu->img;
 
-//	ALOGD("%d ---- %d\n", img->output_mode&IPU_OUTPUT_TO_LCD_FG1, ipu->state&IPU_STATE_STARTED);
-	if (!(img->output_mode & IPU_OUTPUT_TO_LCD_FG1) || 
-		!(ipu->state & IPU_STATE_STARTED)) {
+	if (!(img->output_mode & IPU_OUTPUT_TO_LCD_FG1) ||
+			!(ipu->state & IPU_STATE_STARTED)) {
 		ret = ipu_start(ipu_img);
 		if (ret < 0) {
 			ALOGD("ipu_start failed!");
@@ -896,4 +828,29 @@ int ipu_postBuffer(struct ipu_image_info* ipu_img)
 	}
 
 	return ret;
+}
+
+int ipu_mmap(struct ipu_image_info* ipu_img, unsigned int addr, unsigned int size)
+{
+	struct ipu_native_info *ipu;
+	ipu = (struct ipu_native_info *)ipu_img->native_data;
+	unsigned int args[2] = {addr,size};
+
+	return ioctl(ipu->ipu_fd, IOCTL_IPU_DMMU_MAP, &args);
+}
+
+int ipu_unmap_all(struct ipu_image_info *ipu_img)
+{
+	struct ipu_native_info *ipu;
+	ipu = (struct ipu_native_info *)ipu_img->native_data;
+	return ioctl(ipu->ipu_fd, IOCTL_IPU_DMMU_UNMAP_ALL);
+}
+
+int ipu_unmap(struct ipu_image_info *ipu_img, unsigned int addr, unsigned int size)
+{
+	struct ipu_native_info *ipu;
+	ipu = (struct ipu_native_info *)ipu_img->native_data;
+	unsigned int args[2] = {addr,size};
+
+	return ioctl(ipu->ipu_fd, IOCTL_IPU_DMMU_UNMAP , &args);
 }

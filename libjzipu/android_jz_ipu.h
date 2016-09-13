@@ -1,3 +1,28 @@
+/*
+ * Copyright (c) 2015 Ingenic Semiconductor Co.,Ltd. All Rights Reserved.
+ *
+ * Website:www.ingenic.com
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sub license, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice (including the
+ * next paragraph) shall be included in all copies or substantial portions
+ * of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+ * IN NO EVENT SHALL PRECISION INSIGHT AND/OR ITS SUPPLIERS BE LIABLE FOR
+ * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 /* hardware/xb4770/libjzipu/android_jz4780_ipu.h
  *
  * Copyright (c) 2012 Ingenic Semiconductor Co., Ltd.
@@ -8,6 +33,9 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
+ *
+ * Authors:
+ *    liuyang <king.lyang@ingenic.com>
 */
 
 #ifndef __ANDROID_JZ4780_IPU_H__
@@ -269,6 +297,19 @@ struct ipu_image_info
 	void * native_data;
 };
 
+enum dma_data_direction {
+	DMA_BIDIRECTIONAL = 0,
+	DMA_TO_DEVICE = 1,
+	DMA_FROM_DEVICE = 2,
+	DMA_NONE = 3,
+};
+
+struct flush_cache_info {
+	unsigned int addr;
+	unsigned int len;
+	unsigned int dir;
+};
+
 #define JZIPU_IOC_MAGIC  'I'
 
 /* ioctl command */
@@ -281,6 +322,12 @@ struct ipu_image_info
 #define IOCTL_IPU_SET_BYPASS         _IO(JZIPU_IOC_MAGIC, 109)
 #define IOCTL_IPU_GET_BYPASS_STATE   _IOR(JZIPU_IOC_MAGIC, 110, int)
 #define IOCTL_IPU_CLR_BYPASS         _IO(JZIPU_IOC_MAGIC, 111)
+#define IOCTL_IPU_ENABLE_CLK         _IO(JZIPU_IOC_MAGIC, 112)
+#define IOCTL_IPU0_TO_BUF            _IO(JZIPU_IOC_MAGIC, 113)
+#define IOCTL_IPU_DMMU_MAP              _IO(JZIPU_IOC_MAGIC, 114)
+#define IOCTL_IPU_DMMU_UNMAP            _IO(JZIPU_IOC_MAGIC, 115)
+#define IOCTL_IPU_DMMU_UNMAP_ALL        _IO(JZIPU_IOC_MAGIC, 116)
+#define IOCTL_IPU_FLUSH_CACHE        _IOW(JZIPU_IOC_MAGIC, 117, struct flush_cache_info)
 //#define IOCTL_GET_FREE_IPU       _IOR(JZIPU_IOC_MAGIC, 109, int)
 
 /* ioctl commands to control LCD controller registers */
@@ -298,7 +345,34 @@ int ipu_stop(struct ipu_image_info * ipu_img);
 /* post video frame(YUV buffer) to ipu and start ipu, Block if IPU_OUTPUT_BLOCK_MODE set */
 int ipu_postBuffer(struct ipu_image_info* ipu_img);
 int isOsd2LayerMode(struct ipu_image_info * ipu_img);
+int ipu_unmap_all(struct ipu_image_info *ipu_img_p);
+int ipu_unmap(struct ipu_image_info *ipu_img_p,unsigned int addr,unsigned int size);
+int ipu_mmap(struct ipu_image_info *ipu_img_p,unsigned int addr,unsigned int size);
 
+/* match HAL_PIXEL_FORMAT_ in system/core/include/system/graphics.h */
+enum {
+/* 	HAL_PIXEL_FORMAT_RGBA_8888    = 1, */
+/* 	HAL_PIXEL_FORMAT_RGBX_8888    = 2, */
+/* 	HAL_PIXEL_FORMAT_RGB_888      = 3, */
+/* 	HAL_PIXEL_FORMAT_RGB_565      = 4, */
+/* 	HAL_PIXEL_FORMAT_BGRA_8888    = 5, */
+/* 	//HAL_PIXEL_FORMAT_BGRX_8888    = 0x8000, /\* Add BGRX_8888, Wolfgang, 2010-07-24 *\/ */
+/* 	HAL_PIXEL_FORMAT_BGRX_8888  	= 0x1ff, /\* 2012-10-23 *\/ */
+/* 	HAL_PIXEL_FORMAT_RGBA_5551    = 6, */
+/* 	HAL_PIXEL_FORMAT_RGBA_4444    = 7, */
+/* 	HAL_PIXEL_FORMAT_YCbCr_422_SP = 0x10, */
+/* 	HAL_PIXEL_FORMAT_YCbCr_420_SP = 0x11, */
+/* 	HAL_PIXEL_FORMAT_YCbCr_422_P  = 0x12, */
+/* 	HAL_PIXEL_FORMAT_YCbCr_420_P  = 0x13, */
+/* 	HAL_PIXEL_FORMAT_YCbCr_420_B  = 0x24, */
+/* 	HAL_PIXEL_FORMAT_YCbCr_420_I  = 0x15, */
+/* 	HAL_PIXEL_FORMAT_CbYCrY_422_I = 0x16, */
+/* 	HAL_PIXEL_FORMAT_CbYCrY_420_I = 0x17, */
+
+/* 	/\* suport for YUV420 *\/ */
+	HAL_PIXEL_FORMAT_JZ_YUV_420_P       = 0x47700001, // YUV_420_P
+	HAL_PIXEL_FORMAT_JZ_YUV_420_B       = 0x47700002, // YUV_420_P BLOCK MODE
+};
 #ifdef __cplusplus
 }
 #endif

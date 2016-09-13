@@ -1,3 +1,31 @@
+/*
+ * Copyright (c) 2015 Ingenic Semiconductor Co.,Ltd. All Rights Reserved.
+ *
+ * Website:www.ingenic.com
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sub license, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice (including the
+ * next paragraph) shall be included in all copies or substantial portions
+ * of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+ * IN NO EVENT SHALL PRECISION INSIGHT AND/OR ITS SUPPLIERS BE LIABLE FOR
+ * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * Authors:
+ *    liuyang <king.lyang@ingenic.com>
+ */
 #include <stdio.h>
 #include <malloc.h>
 
@@ -27,7 +55,6 @@ int main(int argc, char *argv[])
 		printf("too small memory!\n");
 		return (-1);
 	}
-	//      get_ipu_ratio_table( (void **)&ipu_ratio_table, (IPU_LUT_LEN) * (IPU_LUT_LEN)*sizeof(struct Ration2m) );
 	// orig table, first calculate
 	for (i = 1; i <= (IPU_LUT_LEN); i++) {
 		for (j = 1; j <= (IPU_LUT_LEN); j++) {
