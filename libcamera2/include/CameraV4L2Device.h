@@ -17,6 +17,7 @@
 #include "CameraDeviceCommon.h"
 #include "CameraColorConvert.h"
 #include "JZCameraParameters.h"
+#include <ion/ion.h>
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
@@ -39,7 +40,6 @@ namespace android {
         struct v4l2_requestbuffers rb;
         struct v4l2_streamparm params;          // v4l2 stream parameters struct
         struct v4l2_jpegcompression jpegcomp;   // v4l2 jpeg compression settings
-        struct v4l2_dbg_chip_ident chip_ident;
 
         void *mem[NB_BUFFER];
         int  mem_length[NB_BUFFER];
@@ -184,7 +184,11 @@ namespace android {
         void update_device_name(const char* deviceName, int len);
 
         bool usePmem(void) {
-            return preview_use_pmem;
+            return false;
+        }
+
+        bool useIon(void) {
+            return preview_use_ion;
         }
 
         unsigned long getTlbBase(void) {
@@ -196,6 +200,8 @@ namespace android {
         void dump_sensor_data(void *frame_buffer);
 
     private:
+        ion_user_handle_t m_ion_handle;
+        int ion_sharedfd;
         void initGlobalInfo(void);
         int  init_param(int width, int height, int fps);
         int  getFormat(int);
@@ -235,8 +241,10 @@ namespace android {
         void  setUserPtrFormat(int format);
         Control* find_control(const char* ctrl_name,int ctrl_id);
         int find_menu(Control *control,const char* menu_name, int* value);
-        int initPmem(int format);
-        void deInitPmem(void);
+        int initIon(int format);
+        void deInitIon(void);
+        void clean_queued(void);
+        int initial_queue_buffers(void);
     private:
         mutable Mutex mlock;
         int device_fd;
@@ -257,16 +265,15 @@ namespace android {
         struct camera_buffer capture_buffer;
         void* mPreviewBuffer[NB_BUFFER];
         size_t mPreviewFrameSize;
-        size_t mPmemTotalSize;
         int mPreviewWidth;
         int mPreviewHeight;
         int mPreviewFps;
         int mAllocWidth;
         int mAllocHeight;
-        bool preview_use_pmem;
-        bool capture_use_pmem;
+        bool preview_use_ion;
+        bool capture_use_ion;
         bool mEnablestartZoom;
-        int pmem_device_fd;
+        int ion_device_fd;
         int mpreviewFormatHal;
         int mpreviewFormatV4l;
         bool is_capture;
@@ -274,6 +281,7 @@ namespace android {
         bool isChangedSize;
         bool isSupportHighResuPre;
         int mReqLostFrameNum;
+        int dequed_buffers;
     public:
         static Mutex sLock;
         static CameraV4L2Device* sInstance;

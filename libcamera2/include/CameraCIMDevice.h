@@ -47,6 +47,7 @@ namespace android {
         void getPreviewSize(int* w, int* h);
         int getNextFrame(void);
         bool usePmem(void);
+        bool useIon(void) { return false; }
         int getFrameOffset(void);
         unsigned int getPreviewFrameIndex(void);
         camera_memory_t* getPreviewBufferHandle(void);

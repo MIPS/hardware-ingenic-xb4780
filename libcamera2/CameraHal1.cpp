@@ -371,6 +371,7 @@ namespace android{
             getWorkThread()->sendMesg(WorkThread::THREAD_IDLE);
             while (!mreceived_cmd) {
                 mreceivedCmdCondition.wait(cmd_lock);
+                mDevice->clean_queued();
             }
             mreceived_cmd = false;
         }
@@ -2241,7 +2242,7 @@ namespace android{
             srcBuf->u_buf_v = (void*)(yuvMeta->yAddr + offset);
             srcBuf->v_buf_v = (void*)(yuvMeta->yAddr + offset);
 
-            if (mDevice->usePmem()) {
+            if (mDevice->useIon()) {
                 srcBuf->y_buf_phys = yuvMeta->yPhy + offset; 
                 srcBuf->u_buf_phys = 0;
                 srcBuf->v_buf_phys = 0;
@@ -2266,7 +2267,7 @@ namespace android{
             srcBuf->u_buf_v = (void*)yuvMeta->uAddr;
             srcBuf->v_buf_v = (void*)yuvMeta->vAddr;
 
-            if (mDevice->usePmem()) {
+            if (mDevice->useIon()) {
                 srcBuf->y_buf_phys = yuvMeta->yPhy;
                 srcBuf->u_buf_phys = yuvMeta->uPhy;
                 srcBuf->v_buf_phys = yuvMeta->vPhy;

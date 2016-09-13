@@ -116,6 +116,8 @@ namespace android {
         virtual unsigned long getTlbBase(void) = 0;
         virtual void flushCache(void*,int)  = 0;
         virtual bool usePmem(void) = 0;
+        virtual bool useIon(void) = 0;
+        virtual void clean_queued(void) { }
 
     public:
         enum {

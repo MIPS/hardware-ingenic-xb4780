@@ -37,6 +37,7 @@ namespace android {
     CameraV4L2Device::CameraV4L2Device()
         :CameraDeviceCommon(),
          mlock("CameraV4L2Device::lock"),
+         dequed_buffers(0),
          device_fd(-1),
          V4L2DeviceState(DEVICE_UNINIT),
          currentId(-1),
@@ -51,10 +52,11 @@ namespace android {
          mPreviewFps(15),
          mAllocWidth(0),
          mAllocHeight(0),
-         preview_use_pmem(false),
-         capture_use_pmem(false),
+         preview_use_ion(false),
+         capture_use_ion(false),
          mEnablestartZoom(false),
-         pmem_device_fd(-1),
+         ion_device_fd(-1),
+         ion_sharedfd(-1),
          mpreviewFormatHal(-1),
          mpreviewFormatV4l(-1),
          is_capture(false),
@@ -242,20 +244,21 @@ namespace android {
             }
         }
 
-        if (format == HAL_PIXEL_FORMAT_JZ_YUV_420_B) {
-            if (initPmem(format) != NO_ERROR) {
+
+        if (format == HAL_PIXEL_FORMAT_YCbCr_422_I) {
+            if (initIon(format) != NO_ERROR) {
                 return BAD_VALUE;
             }
        }
 
         preview_buffer.nr = mglobal_info.preview_buf_nr;
         preview_buffer.size = size;
-        if ((format == HAL_PIXEL_FORMAT_JZ_YUV_420_B) && (pmem_device_fd > 0)) {
-            preview_buffer.fd = pmem_device_fd;
-            preview_use_pmem = true;
+        if ((format == HAL_PIXEL_FORMAT_YCbCr_422_I) && (ion_sharedfd > 0)) {
+            preview_buffer.fd = ion_sharedfd;
+            preview_use_ion = true;
         } else {
             preview_buffer.fd = -1;
-            preview_use_pmem = false;
+            preview_use_ion = false;
         }
 
         if (get_memory == NULL) {
@@ -295,7 +298,7 @@ namespace android {
             return UNKNOWN_ERROR;
         }
 
-        if (!preview_use_pmem) {
+        if (!preview_use_ion) {
 #ifdef VIDIOC_SET_TLB_BASE
             if ((mtlb_base>0) && (-1 == ::ioctl(device_fd,VIDIOC_SET_TLB_BASE,&mtlb_base))) {
                 ALOGE("%s: set tlb base error: %s",__FUNCTION__, strerror(errno));
@@ -304,6 +307,10 @@ namespace android {
 #endif
         }
 
+        return initial_queue_buffers();
+    }
+
+    int CameraV4L2Device::initial_queue_buffers(void) {
         for (unsigned int i = 0; i < videoIn->rb.count; ++i) {
             memset(&videoIn->buf, 0, sizeof(struct v4l2_buffer));
             videoIn->buf.index = i;
@@ -311,12 +318,13 @@ namespace android {
             videoIn->buf.memory = V4L2_MEMORY_USERPTR;
             videoIn->buf.m.userptr = (unsigned long)mPreviewBuffer[i];
             videoIn->buf.length = preview_buffer.size;
-            ret = ::ioctl(device_fd, VIDIOC_QBUF, &videoIn->buf);
-            if (ret < 0) {
+            if (::ioctl(device_fd, VIDIOC_QBUF, &videoIn->buf) < 0) {
                 ALOGE("Init: VIDIOC_QBUF failed,err: %s",strerror(errno));
                 return BAD_VALUE;
             }
         }
+        dequed_buffers = 0;
+
         return NO_ERROR;
     }
 
@@ -399,7 +407,7 @@ namespace android {
         }
 
         dmmu_unmap_user_memory(&(preview_buffer.dmmu_info));
-        if (preview_use_pmem) {
+        if (preview_use_ion) {
             munmap(preview_buffer.common->data,preview_buffer.common->size);
         }
         preview_buffer.common->release(preview_buffer.common);
@@ -521,6 +529,17 @@ namespace android {
 
         int ret = NO_ERROR;
 
+        if(dequed_buffers == 1) {
+            int ret = ::ioctl(device_fd, VIDIOC_QBUF, &videoIn->buf);
+            if (ret < 0) {
+                ALOGE("%s : VIDIOC_QBUF failed,err: %s",__FUNCTION__,strerror(errno));
+            }
+            dequed_buffers = 0;
+        } else if(dequed_buffers == videoIn->rb.count) {
+            initial_queue_buffers();
+            dequed_buffers = 0;
+        }
+
         memset(&videoIn->buf, 0, sizeof(videoIn->buf));
         videoIn->buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         videoIn->buf.memory = V4L2_MEMORY_USERPTR;
@@ -530,6 +549,7 @@ namespace android {
             return NULL;
         }
 
+        dequed_buffers++;
         bool findPtr = false;
         for (int i=0; i< preview_buffer.nr; ++i) {
             if ((unsigned int)videoIn->buf.m.userptr == (unsigned int)mPreviewBuffer[i]) {
@@ -574,10 +594,6 @@ namespace android {
             yuvMeta->vAddr = yuvMeta->uAddr;
         }
 
-        ret = ::ioctl(device_fd, VIDIOC_QBUF, &videoIn->buf);
-        if (ret < 0) {
-            ALOGE("%s : VIDIOC_QBUF failed,err: %s",__FUNCTION__,strerror(errno));
-        }
         return (void*)yuvMeta;
     }
 
@@ -1439,13 +1455,10 @@ namespace android {
             return NO_INIT;
         }
 
-        isSupportHighResuPre = false;
         if (videoIn->cap.capabilities & V4L2_CAP_STREAMING) {
             if (strcmp((const char*)videoIn->cap.card, "JZ4780-Camera") == 0) {
                 io = IO_METHOD_USERPTR;
-                if (0 == ::ioctl(device_fd, VIDIOC_DBG_G_CHIP_IDENT, &videoIn->chip_ident)) {
-                    isSupportHighResuPre = (videoIn->chip_ident.ident==1)? true : false;
-                }
+                    isSupportHighResuPre = true;
                 ALOGV("support user ptr I/O");
             } else {
                 io = IO_METHOD_MMAP;
@@ -1457,6 +1470,7 @@ namespace android {
             isSupportHighResuPre = true;
             ALOGV("support read write I/O");
         } else {
+	        isSupportHighResuPre = false;
             ALOGE("%s: not invalidy I/O",__FUNCTION__);
             return NO_INIT;
         }
@@ -1478,34 +1492,42 @@ namespace android {
         return NO_ERROR;
     }
 
-    int CameraV4L2Device::initPmem(int format) {
+    int CameraV4L2Device::initIon(int format) {
 
-        if (access(PMEMDEVICE, R_OK|W_OK) != 0) {
-            ALOGE("%s: %s device don't access,err: %s",__FUNCTION__,
-                  PMEMDEVICE, strerror(errno));
-            return BAD_VALUE;
-        }
-
-        if (pmem_device_fd < 0) {
-            pmem_device_fd = open(PMEMDEVICE, O_RDWR);
-            if (pmem_device_fd < 0) {
-                ALOGE("%s: open %s error, %s", __FUNCTION__, PMEMDEVICE, strerror(errno));
-                pmem_device_fd = -1;
+        if (ion_device_fd < 0) {
+            ion_device_fd = ion_open();
+            if (ion_device_fd < 0) {
+                ALOGE("%s: ion_open() error, %s", __FUNCTION__, strerror(errno));
+                ion_device_fd = -1;
             } else {
-                struct pmem_region region;
-                ::ioctl(pmem_device_fd, PMEM_GET_TOTAL_SIZE, &region);
-                mPmemTotalSize = region.len;
-                ::ioctl(pmem_device_fd,PMEM_ALLOCATE,mPmemTotalSize);
+                int msize = ION_BUFFER_SIZE;
+                ion_alloc(ion_device_fd, msize, DMMU_PAGE_SIZE, ION_HEAP_TYPE_DMA_MASK,
+                        0, &m_ion_handle);
+                ion_share(ion_device_fd, m_ion_handle, &ion_sharedfd);
             }
         }
         return NO_ERROR;
     }
 
-    void CameraV4L2Device::deInitPmem(void) {
-        if (pmem_device_fd > 0) {
-            close(pmem_device_fd);
-            pmem_device_fd = -1;
-            mPmemTotalSize = 0;
+    void CameraV4L2Device::clean_queued(void) {
+        for (unsigned int i = dequed_buffers; i < videoIn->rb.count; ++i){
+            dequed_buffers = 0;
+            getCurrentFrame();
+        }
+        dequed_buffers = videoIn->rb.count;
+    }
+
+    void CameraV4L2Device::deInitIon(void) {
+        if (ion_device_fd > 0) {
+            if (ion_sharedfd > 0)
+                close(ion_sharedfd);
+
+            ion_free(ion_device_fd, m_ion_handle);
+            ion_close(ion_device_fd);
+
+            ion_device_fd = -1;
+            ion_sharedfd = -1;
+            memset(&m_ion_handle, 0, sizeof(ion_user_handle_t));
         }
     }
 
@@ -1562,7 +1584,7 @@ namespace android {
         V4L2DeviceState = DEVICE_UNINIT;
         currentId = -1;
 
-        deInitPmem();
+        deInitIon();
         if (mtlb_base > 0) {
             dmmu_deinit();
             mtlb_base = 0;
@@ -1668,16 +1690,18 @@ namespace android {
 
     int CameraV4L2Device::getCameraModuleInfo(int camera_id, struct camera_info* info)
     {
-        if ((mglobal_info.sensor_count == 1)
+
+        if (camera_id == 0) {
+            info->facing = CAMERA_FACING_BACK;
+            info->orientation = 0;
+            ALOGV("%s: id: %d, facing: %s, orientation: %d",__FUNCTION__, 0,"back camera", 0);
+        } else if ((mglobal_info.sensor_count == 1)
             || (camera_id == 1)) {
             info->facing = CAMERA_FACING_FRONT;
             info->orientation = 0;
             ALOGV("%s: id: %d, facing: %s, orientation: %d",__FUNCTION__, 1,"front camera",0);
-        } else if (camera_id == 0) {
-            info->facing = CAMERA_FACING_BACK;
-            info->orientation = 0;
-            ALOGV("%s: id: %d, facing: %s, orientation: %d",__FUNCTION__, 0,"back camera", 0);
         }
+
         return NO_ERROR;
     }
 

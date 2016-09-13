@@ -60,7 +60,8 @@ LOCAL_SHARED_LIBRARIES:= \
 	libdmmu \
 	libdl \
 	libjzipu \
-	libjhead
+	libjhead \
+	libion
 
 ifeq ($(USE_GMS_LIBS),true)
 	LOCAL_SHARED_LIBRARIES += libjpeg_old

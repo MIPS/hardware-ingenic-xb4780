@@ -56,6 +56,8 @@
 
 #define PMEMDEVICE "/dev/pmem_camera"
 
+#define ION_BUFFER_SIZE 1024 * 1024 * 16
+
 #define START_ADDR_ALIGN 0x1000 /* 4096 byte */
 #define STRIDE_ALIGN 0x800 /* 2048 byte */
 
