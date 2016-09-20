@@ -16,6 +16,7 @@
 
 #include "CameraHalSelector.h"
 #include "CameraFaceDetect.h"
+#include "iStride.h"
 
 #ifndef PIXEL_FORMAT_YV16
 #define PIXEL_FORMAT_YV16  0x36315659 /* YCrCb 4:2:2 Planar */
@@ -24,6 +25,8 @@
 #define WAIT_TIME (1000000000LL * 60)
 #define START_CAMERA_COLOR_CONVET_THREAD
 //#define CONVERTER_PMON
+
+const IMG_gralloc_module_public_t *module = NULL;
 
 namespace android{
 
@@ -1238,12 +1241,23 @@ namespace android{
         }
 
         void *img = NULL;
-        const Rect rect(mPreviewWinWidth,mPreviewWinHeight);
-        GraphicBufferMapper& mapper(GraphicBufferMapper::get());
-        res = mapper.lock(*buffer, GRALLOC_USAGE_SW_WRITE_OFTEN, rect, &img);
-        if (res != NO_ERROR) {
-            mPreviewWindow->cancel_buffer(mPreviewWindow, buffer);
-            return ;
+
+        const IMG_native_handle_t *nativeHandle = (IMG_native_handle_t *)buffer;
+        int err;
+
+        if (module == NULL) {
+            err = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, (const hw_module_t **)&module);
+             if (err) {
+                ALOGW("%s: err = %d = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, ...)", __func__, err);
+            }
+        }
+
+        /*
+         * Not really locking here, more indicating the a region of the destination framebuffer being used.
+         * That's From 0,0 --> To dstWidth, dstHeight
+         */
+        if (module->base.lock((const gralloc_module_t *) module, *buffer, GRALLOC_USAGE_SW_WRITE_OFTEN, 0, 0, mPreviewWinWidth, mPreviewWinHeight, &img) != 0) {
+            ALOGE("%s: Error: fail to mapper lock buffer for HWConverter!!!", __func__);
         }
 
         res = fillCurrentFrame((uint8_t*)img,buffer);
@@ -1253,7 +1267,7 @@ namespace android{
         } else {
             mPreviewWindow->cancel_buffer(mPreviewWindow, buffer);
         }
-        mapper.unlock(*buffer);
+        module->base.unlock((const gralloc_module_t*) module, *buffer);
     }
 
     status_t CameraHal1::fillCurrentFrame(uint8_t* img,buffer_handle_t* buffer) {
@@ -1290,7 +1304,7 @@ namespace android{
             mPrebytesPerPixel = 2;
         }
         int dest_size = mPreviewWinWidth * mPreviewWinHeight * mPrebytesPerPixel;
-        int dstStride = dst_handle->iStride * (dst_handle->uiBpp >> 3);
+        int dstStride = iStride(dst_handle) * (dst_handle->uiBpp >> 3);
         uint8_t* dst = ((uint8_t*)img) + (xStart*mPrebytesPerPixel) + (dstStride*yStart);
 
         switch (mPreviewWinFmt) {
@@ -2053,7 +2067,7 @@ namespace android{
         }
 
         dst_handle = (IMG_native_handle_t*)(*buffer);
-        map_size = dst_handle->iStride * dst_handle->iHeight * (dst_handle->uiBpp >> 3);
+        map_size = iStride(dst_handle) * dst_handle->iHeight * (dst_handle->uiBpp >> 3);
         dmmu_map_memory((uint8_t*)dst_buf,map_size);
 
         mDevice->flushCache((void*)yuvMeta->yAddr, map_size);
@@ -2069,7 +2083,7 @@ namespace android{
             x2d_cfg.dst_format = X2D_OUTFORMAT_XRGB888;
         else if (mPreviewWinFmt == HAL_PIXEL_FORMAT_RGB_888)
             x2d_cfg.dst_format = X2D_OUTFORMAT_ARGB888;
-        x2d_cfg.dst_stride = dst_handle->iStride * (dst_handle->uiBpp >> 3);
+        x2d_cfg.dst_stride = iStride(dst_handle) * (dst_handle->uiBpp >> 3);
         x2d_cfg.dst_back_en = 0;
         x2d_cfg.dst_glb_alpha_en = 1;
         x2d_cfg.dst_preRGB_en = 0;
@@ -2191,7 +2205,7 @@ namespace android{
         IMG_native_handle_t* dst_handle = NULL;
         dst_handle = (IMG_native_handle_t*)(*buffer);
 
-        map_size = dst_handle->iStride * dst_handle->iHeight * (dst_handle->uiBpp >> 3);
+        map_size = iStride(dst_handle) * dst_handle->iHeight * (dst_handle->uiBpp >> 3);
         dmmu_map_memory((uint8_t*)dst_buf,map_size);
 
         mDevice->flushCache((void*)yuvMeta->yAddr, map_size);
@@ -2301,7 +2315,7 @@ namespace android{
         dstInfo->height = dst_handle->iHeight;
         dstInfo->out_buf_v = dst_buf;
         dstBuf->y_buf_v = (void*)(dst_buf);
-        dstBuf->y_stride = dst_handle->iStride * (dst_handle->uiBpp >> 3);
+        dstBuf->y_stride = iStride(dst_handle) * (dst_handle->uiBpp >> 3);
         err = init_ipu_dev(yuvMeta->width, yuvMeta->height, yuvMeta->format, must_do);
         if (err < 0) {
             ALOGE("ipu init failed ipuHalder = %p", mipu);

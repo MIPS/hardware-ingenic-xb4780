@@ -61,7 +61,8 @@ LOCAL_SHARED_LIBRARIES:= \
 	libdl \
 	libjzipu \
 	libjhead \
-	libion
+	libion \
+	libhardware
 
 ifeq ($(USE_GMS_LIBS),true)
 	LOCAL_SHARED_LIBRARIES += libjpeg_old

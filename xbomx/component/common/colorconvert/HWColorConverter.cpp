@@ -28,6 +28,9 @@
 #endif
 #include "config.h"                        /* Config #defines are required for hal_public.h */
 #include "hal_public.h"
+#include "iStride.h"
+
+const IMG_gralloc_module_public_t *module = NULL;
 
 namespace android {
 
@@ -108,16 +111,26 @@ bool HWColorConverter::convert(
     
     void* finalDst = dstBits;
 
-    GraphicBufferMapper &mapper = GraphicBufferMapper::get();
     buffer_handle_t bufferHandle = (buffer_handle_t)dstBits;
-    if(mConfig.useDstGraphicBuffer){
-	Rect bounds(dstWidth, dstHeight);
-	if(0 != mapper.lock(bufferHandle, GRALLOC_USAGE_SW_WRITE_OFTEN, bounds, &finalDst)){
-	    ALOGE("Error: fail to mapper lock buffer for HWConverter!!!");
-	    return false;
-	}
-	const IMG_native_handle_t* gpuBufHandle = (IMG_native_handle_t*)bufferHandle;
-	dstStride = gpuBufHandle->iStride;
+   if (mConfig.useDstGraphicBuffer) {
+        const IMG_native_handle_t *nativeHandle = (IMG_native_handle_t *)bufferHandle;
+        int err;
+        if (module == NULL) {
+            err = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, (const hw_module_t **)&module);
+             if (err) {
+                ALOGW("%s: err = %d = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, ...)", __func__, err);
+            }
+        }
+
+        /*
+         * Not really locking here, more indicating the a region of the destination framebuffer being used.
+         * That's From 0,0 --> To dstWidth, dstHeight
+         */
+        if (module->base.lock((const gralloc_module_t *) module, bufferHandle, GRALLOC_USAGE_SW_WRITE_OFTEN, 0, 0, dstWidth, dstHeight, &finalDst) != 0) {
+            ALOGE("%s: Error: fail to mapper lock buffer for HWConverter!!!", __func__);
+            return false;
+        }
+        dstStride = iStride(nativeHandle);
     }
 
     BitmapParams dst(
@@ -157,7 +170,7 @@ bool HWColorConverter::convert(
     }
     
     if(mConfig.useDstGraphicBuffer){
-	mapper.unlock(bufferHandle);
+        module->base.unlock((const gralloc_module_t*) module, bufferHandle);
     }
     
     return res;
