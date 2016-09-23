@@ -12,6 +12,7 @@
 #define LOG_TAG "JZCameraParams"
 //#define LOG_NDEBUG 0
 
+#include <ctype.h>
 #include "JZCameraParameters.h"
 #include <media/MediaProfiles.h>
 

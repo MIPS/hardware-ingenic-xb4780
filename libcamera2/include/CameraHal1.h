@@ -13,6 +13,7 @@
 #ifndef __CAMERA_HW_HAL1_H_
 #define __CAMERA_HW_HAL1_H_
 
+#include <ctype.h>
 #include "CameraHalCommon.h"
 #include "CameraColorConvert.h"
 #include "CameraFaceDetect.h"
