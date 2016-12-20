@@ -23,7 +23,12 @@ LOCAL_SRC_FILES := $(addprefix $(MPTOP),$(MLOCAL_SRC_FILES))
 LOCAL_MODULE := libstagefright_ffmpcommon
 
 JZC_CFG := jzconfig.h
-LOCAL_CFLAGS := -DHAVE_AV_CONFIG_H -ffunction-sections  -Wmissing-prototypes -Wundef -Wdisabled-optimization -Wno-pointer-sign -Wdeclaration-after-statement -std=gnu99 -Wall -Wno-switch -Wpointer-arith -Wredundant-decls -O2 -pipe -ffast-math -UNDEBUG -UDEBUG -fno-builtin -imacros $(JZC_CFG)
+LOCAL_CFLAGS := -DHAVE_AV_CONFIG_H -ffunction-sections -Wmissing-prototypes \
+                -Wundef -Wdisabled-optimization -Wno-pointer-sign \
+                -Wdeclaration-after-statement -std=gnu99 -Wall -Wno-switch \
+                -Wpointer-arith -Wredundant-decls -O2 -pipe -ffast-math \
+                -UNDEBUG -UDEBUG -fno-builtin -imacros $(JZC_CFG) \
+                -Wno-error=int-conversion
 
 
 LOCAL_STATIC_LIBRARIES := 
