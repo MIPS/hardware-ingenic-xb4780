@@ -76,6 +76,8 @@ LOCAL_CFLAGS += \
 	-DCAMERA_INFO_MODULE='"$(PRODUCT_MODEL)"' \
 	-DCAMERA_INFO_MANUFACTURER='"$(PRODUCT_MANUFACTURER)"'
 
+LOCAL_CPPFLAGS := -std=c++11 -Wno-tautological-pointer-compare -Wno-c++11-narrowing
+
 #camera version config
 ifeq ($(CAMERA_VERSION), 1)
 LOCAL_SRC_FILES += \
