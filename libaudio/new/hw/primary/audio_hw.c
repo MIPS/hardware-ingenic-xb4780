@@ -59,7 +59,7 @@
 #define SCO_SAMPLING_RATE 8000
 
 /* minimum sleep time in out_write() when write threshold is not reached */
-#define MIN_WRITE_SLEEP_US 2000
+#define MIN_WRITE_SLEEP_US 1000
 #define MAX_WRITE_SLEEP_US ((OUT_PERIOD_SIZE * OUT_SHORT_PERIOD_COUNT * 1000000) \
                                 / OUT_SAMPLING_RATE)
 
@@ -730,19 +730,19 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
                 (total_sleep_time_us <= MAX_WRITE_SLEEP_US));
 
         /* do not allow abrupt changes on buffer size. Increasing/decreasing
-         * the threshold by steps of 1/4th of the buffer size keeps the write
+         * the threshold by steps of 1/16th of the buffer size keeps the write
          * time within a reasonable range during transitions.
          * Also reset current threshold just above current filling status when
          * kernel buffer is really depleted to allow for smooth catching up with
          * target threshold.
          */
         if (out->cur_write_threshold > out->write_threshold) {
-            out->cur_write_threshold -= period_size / 4;
+            out->cur_write_threshold -= period_size / 16;
             if (out->cur_write_threshold < out->write_threshold) {
                 out->cur_write_threshold = out->write_threshold;
             }
         } else if (out->cur_write_threshold < out->write_threshold) {
-            out->cur_write_threshold += period_size / 4;
+            out->cur_write_threshold += period_size / 16;
             if (out->cur_write_threshold > out->write_threshold) {
                 out->cur_write_threshold = out->write_threshold;
             }
@@ -750,7 +750,7 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
             ((out->write_threshold - kernel_frames) >
                 (int)(period_size * OUT_SHORT_PERIOD_COUNT))) {
             out->cur_write_threshold = (kernel_frames / period_size + 1) * period_size;
-            out->cur_write_threshold += period_size / 4;
+            out->cur_write_threshold += period_size / 16;
         }
     }
 
