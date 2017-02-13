@@ -94,7 +94,7 @@ int dmmu_deinit()
 	android_atomic_dec(&g_dmmu_open_count);
 
 	if (g_dmmu_open_count == 0) {
-		ALOGD("g_dmmu_open_count is zero!\n");
+		MY_DBG("g_dmmu_open_count is zero!\n");
 		close(dmmu_fd); 		/* close fd */
 		dmmu_fd = -1;
 	}
@@ -124,26 +124,32 @@ int dmmu_get_page_table_base_phys(unsigned int *phys_addr)
 {
 	int ret = 0;
 	ENTER();
-        dmmu_init();
+	dmmu_init();
 
 	if (phys_addr == NULL) {
 		ALOGD("phys_addr is NULL!\n");
-		return -1;
+		ret = -1;
+		goto out;
 	}
 
 	if (dmmu_fd < 0) {
 		ALOGD("dmmu_fd < 0");
-		return -1;
+		ret = -1;
+		goto out;
 	}
 
 	ret = ioctl(dmmu_fd, DMMU_GET_PAGE_TABLE_BASE_PHYS, phys_addr);
 	if (ret < 0) {
 		ALOGD("dmmu_get_page_table_base_phys_addr ioctl(DMMU_GET_BASE_PHYS) failed, ret=%d\n", ret);
-		return -1;
+		ret = -1;
+		goto out;
 	}
 
 	MY_DBG("table_base phys_addr = 0x%08X", *phys_addr);
-	return 0;
+	ret = 0;
+out:
+	dmmu_deinit();
+	return ret;
 }
 
 /* NOTE: page_start and page_end maybe used both by two buffer. */
@@ -151,8 +157,7 @@ int dmmu_map_user_mem(void * vaddr, int size)
 {
 	ENTER();
 	int i;
-        dmmu_init();
-        
+
 	if (dmmu_fd < 0) {
 		ALOGD("dmmu_fd < 0");
 		return -1;
@@ -181,7 +186,6 @@ int dmmu_map_user_mem(void * vaddr, int size)
 int dmmu_unmap_user_mem(void * vaddr, int size)
 {
 	ENTER();
-        dmmu_init();
 
 	if (dmmu_fd < 0) {
 		ALOGD("dmmu_fd < 0");
@@ -206,20 +210,24 @@ int dmmu_get_memory_physical_address(struct dmmu_mem_info * mem)
 {
 	ENTER();
 	int i;
-        dmmu_init();
+	int ret;
+	dmmu_init();
         
 	if (dmmu_fd < 0) {
 		ALOGD("dmmu_fd < 0");
-		return -1;
+		ret = -1;
+		goto out;
 	}
 
 	if ( mem == NULL ) {
 		ALOGD("mem == NULL");
-		return -1;
+		ret = -1;
+		goto out;
 	}
 	if ( mem->pages_phys_addr_table != NULL ) {
 		ALOGD("mem->pages_phys_addr_table != NULL");
-		return -1;
+		ret = -1;
+		goto out;
 	}
 
 	mem->paddr = 0;
@@ -241,11 +249,16 @@ int dmmu_get_memory_physical_address(struct dmmu_mem_info * mem)
 		ret = ioctl(dmmu_fd, DMMU_GET_TLB_PHYS, mem);
 		if (ret < 0) {
 			ALOGD("get dmmu tlb phys addr failed!\n");
-			return -1;
+			ret =  -1;
+			goto out;
 		}
 		MY_DBG("Map mem phys_addr = 0x%08x", mem->paddr);
 	}
-	return 0;
+
+	ret = 0;
+out:
+	dmmu_deinit();
+	return ret;
 }
 
 int dmmu_release_memory_physical_address(struct dmmu_mem_info* mem)
@@ -261,15 +274,21 @@ int dmmu_release_memory_physical_address(struct dmmu_mem_info* mem)
 /* NOTE: page_start and page_end maybe used both by two buffer. */
 int dmmu_map_user_memory(struct dmmu_mem_info* mem)
 {
-    dmmu_init();
-  return dmmu_map_user_mem(mem->vaddr, mem->size);
+	int ret;
+	dmmu_init();
+	ret = dmmu_map_user_mem(mem->vaddr, mem->size);
+	dmmu_deinit();
+	return ret;
 }
 
 /* NOTE: page_start and page_end maybe used both by two buffer. */
 int dmmu_unmap_user_memory(struct dmmu_mem_info* mem)
 {
-    dmmu_init();
-  return dmmu_unmap_user_mem(mem->vaddr, mem->size);
+	int ret;
+	dmmu_init();
+	ret = dmmu_unmap_user_mem(mem->vaddr, mem->size);
+	dmmu_deinit();
+	return ret;
 }
 
 int dmmu_match_user_mem_tlb(void * vaddr, int size)
