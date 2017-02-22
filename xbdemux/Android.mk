@@ -36,7 +36,8 @@ LOCAL_SHARED_LIBRARIES :=               \
 	libui \
 	libjzipu \
 	libdmmu \
-        libz
+	libz \
+	liblog
 
 LOCAL_STATIC_LIBRARIES := \
 	libstagefright_vlume_codec \

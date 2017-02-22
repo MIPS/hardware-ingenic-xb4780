@@ -73,7 +73,8 @@ LOCAL_SHARED_LIBRARIES := \
         libstagefright \
         libstagefright_omx \
         libutils \
-        libui
+        libui \
+        liblog
 
 LOCAL_STATIC_LIBRARIES := libOMX_Basecomponent
 LOCAL_MODULE := libstagefright_hard_x264hwenc

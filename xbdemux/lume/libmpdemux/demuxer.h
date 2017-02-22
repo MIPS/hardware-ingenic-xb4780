@@ -148,7 +148,7 @@
 #define DEMUXER_TYPE_PLAYLIST (2<<16)
 
 
-#define MP_NOPTS_VALUE (-1LL<<63) //both int64_t and double should be able to represent this exactly
+#define MP_NOPTS_VALUE (0x8000000000000000) //both int64_t and double should be able to represent this exactly
 
 #define SEEK_ABSOLUTE (1 << 0)
 #define SEEK_FACTOR   (1 << 1)

@@ -14,7 +14,7 @@ LOCAL_CFLAGS :=
 LOCAL_ARM_MODE := arm
 
 LOCAL_STATIC_LIBRARIES := 
-LOCAL_SHARED_LIBRARIES := libc libdl libcutils libutils \
+LOCAL_SHARED_LIBRARIES := libc libdl libcutils libutils liblog \
 
 LOCAL_C_INCLUDES := \
 	$(TOP)/frameworks/native/include/media/openmax

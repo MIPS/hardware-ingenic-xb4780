@@ -78,7 +78,7 @@ OMX_API OMX_ERRORTYPE OMX_APIENTRY OMX_Deinit(void)
 
 OMX_API OMX_ERRORTYPE OMX_APIENTRY OMX_ComponentNameEnum(
     OMX_OUT OMX_STRING cComponentName,
-    OMX_IN  OMX_U32 nNameLength,
+    OMX_IN  OMX_U32 nNameLength __attribute__((__unused__)),
     OMX_IN  OMX_U32 nIndex)
 {
     if (nIndex >= kNumComponents) {

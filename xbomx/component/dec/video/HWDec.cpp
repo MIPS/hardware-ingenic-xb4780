@@ -41,6 +41,10 @@ extern "C"{
 #include "stheader.h"
 }
 
+struct CodecProfileLevel {
+    OMX_U32 mProfile;
+    OMX_U32 mLevel;
+};
 
 using namespace android;
 
@@ -115,7 +119,7 @@ HWDec::HWDec(
       mConverter(NULL),
       mUseGraphicBuffer(false),
       mPortSettingsChangedWaitingForOutFull(false){
-    
+
     initPorts();
     mOutBuf = (PlanarImage *)malloc(sizeof(PlanarImage));
 
@@ -129,19 +133,19 @@ HWDec::HWDec(
 
 HWDec::~HWDec() {
     ALOGV("~HWDec ");
-    
+
     List<BufferInfo *> &outQueue = getPortQueue(kOutputPortIndex);
     List<BufferInfo *> &inQueue = getPortQueue(kInputPortIndex);
     CHECK(outQueue.empty());
     CHECK(inQueue.empty());
-    
+
     if(mOutBuf){
 	free(mOutBuf);
 	mOutBuf = NULL;
     }
 
     deInitDecoder();
-    
+
     ALOGV("~HWDec out");
 }
 
@@ -159,7 +163,7 @@ void HWDec::initPorts() {
     def.eDomain = OMX_PortDomainVideo;
     def.bBuffersContiguous = OMX_FALSE;
     def.nBufferAlignment = 1;
-    
+
     def.format.video.pNativeRender = NULL;
     def.format.video.nFrameWidth = mWidth;
     def.format.video.nFrameHeight = mHeight;
@@ -217,53 +221,53 @@ OMX_ERRORTYPE HWDec::internalGetParameter(
         case OMX_IndexParamVideoPortFormat:
 	{
 	    OMX_VIDEO_PARAM_PORTFORMATTYPE *formatParams = (OMX_VIDEO_PARAM_PORTFORMATTYPE *)params;
-	    
+
 	    if (formatParams->nPortIndex > kOutputPortIndex) {
 		return OMX_ErrorUndefined;
 	    }
-	    
+
 	    if (formatParams->nIndex != 0) {
 		return OMX_ErrorNoMore;
 	    }
-	    
+
 	    if (formatParams->nPortIndex == kInputPortIndex) {
 		OMX_PARAM_PORTDEFINITIONTYPE *def = &editPortInfo(formatParams->nPortIndex)->mDef;
 		formatParams->eCompressionFormat = def->format.video.eCompressionFormat;//OMX_VIDEO_CodingAVC;//
-		
+
 		formatParams->eColorFormat = OMX_COLOR_FormatUnused;
 		formatParams->xFramerate = 0;
 	    } else {
 		CHECK(formatParams->nPortIndex == kOutputPortIndex);
-		
+
 		OMX_PARAM_PORTDEFINITIONTYPE *def = &editPortInfo(formatParams->nPortIndex)->mDef;
-		formatParams->eColorFormat = def->format.video.eColorFormat;//OMX_COLOR_FormatYUV420Planar;		
+		formatParams->eColorFormat = def->format.video.eColorFormat;//OMX_COLOR_FormatYUV420Planar;
 		formatParams->eCompressionFormat = OMX_VIDEO_CodingUnused;
 		formatParams->xFramerate = 0;
 	    }
 	    return OMX_ErrorNone;
 	}
-	
+
         case OMX_IndexParamVideoProfileLevelQuerySupported:
 	{
 	    OMX_VIDEO_PARAM_PROFILELEVELTYPE *profileLevel = (OMX_VIDEO_PARAM_PROFILELEVELTYPE *) params;
-	    
+
 	    if (profileLevel->nPortIndex != kInputPortIndex) {
 		ALOGE("Invalid port index: %ld", profileLevel->nPortIndex);
 		return OMX_ErrorUnsupportedIndex;
 	    }
-	    
+
 	    size_t index = profileLevel->nProfileIndex;
 	    size_t nProfileLevels =
 		sizeof(kProfileLevels) / sizeof(kProfileLevels[0]);
 	    if (index >= nProfileLevels) {
 		return OMX_ErrorNoMore;
 	    }
-	    
+
 	    profileLevel->eProfile = kProfileLevels[index].mProfile;
 	    profileLevel->eLevel = kProfileLevels[index].mLevel;
 	    return OMX_ErrorNone;
 	}
-    
+
         default:
 	    return SimpleHardOMXComponent::internalGetParameter(index, params);
     }
@@ -277,17 +281,17 @@ OMX_ERRORTYPE HWDec::internalSetParameter(
 	{
 	    //OMX.google.android.index.enableAndroidNativeBuffers
 	    EnableAndroidNativeBuffersParams *pANBParams = (EnableAndroidNativeBuffersParams *) params;
-	    if(pANBParams->nPortIndex == kOutputPortIndex 
+	    if(pANBParams->nPortIndex == kOutputPortIndex
 	       && pANBParams->enable == OMX_TRUE) {
 		OMX_PARAM_PORTDEFINITIONTYPE *def = &editPortInfo(pANBParams->nPortIndex)->mDef;
 		def->format.video.eColorFormat = (OMX_COLOR_FORMATTYPE) HAL_PIXEL_FORMAT_RGBX_8888;//value with incompatiable HAL only under Android ANB mode.
 		mConvertDstFormat = (OMX_COLOR_FORMATTYPE) OMX_COLOR_Format32bitRGBA8888;//OMX_COLOR_Format16bitRGB565;//
 		mUseGraphicBuffer = true;
 	    }
-	    
+
 	    return OMX_ErrorNone;
 	}
-	
+
         case OMX_IndexParamSetShContext:
 	{
 	    if (!mShContext) {
@@ -302,7 +306,7 @@ OMX_ERRORTYPE HWDec::internalSetParameter(
 	{
 	    const OMX_PARAM_COMPONENTROLETYPE *roleParams =
 		(const OMX_PARAM_COMPONENTROLETYPE *)params;
-	    
+
 	    ALOGV("roleParams->cRole =  %s", (const char *)roleParams->cRole);
 	    if (strncmp((const char *)roleParams->cRole, INGENIC_OMX_ROLE_MPEG4, OMX_MAX_STRINGNAME_SIZE - 1) == 0){
 		mVideoFormat = VF_MPEG4;
@@ -318,7 +322,7 @@ OMX_ERRORTYPE HWDec::internalSetParameter(
 	    }
 
 	    updateVideoFormat();
-	    
+
 	    return OMX_ErrorNone;
 	}
 
@@ -326,15 +330,15 @@ OMX_ERRORTYPE HWDec::internalSetParameter(
 	{
 	    OMX_VIDEO_PARAM_PORTFORMATTYPE *formatParams =
 		(OMX_VIDEO_PARAM_PORTFORMATTYPE *)params;
-	    
+
 	    if (formatParams->nPortIndex > kOutputPortIndex) {
 		return OMX_ErrorUndefined;
 	    }
-	
+
 	    if (formatParams->nIndex != 0) {
 		return OMX_ErrorNoMore;
 	    }
-	
+
 	    if(formatParams->nPortIndex == kOutputPortIndex) {
 		//do nothing when android ANB mode, because its colorformat has been settled already. further color setparam wont work anymore.
 		if(mUseGraphicBuffer){
@@ -348,7 +352,7 @@ OMX_ERRORTYPE HWDec::internalSetParameter(
 		    case OMX_COLOR_FormatYUV420Tile:
 		    case OMX_COLOR_FormatYUV420ArrayPlanar:
 		    {
-			if(mVideoFormat == VF_MPEG4 || mVideoFormat == VF_H264 || 
+			if(mVideoFormat == VF_MPEG4 || mVideoFormat == VF_H264 ||
 			   mVideoFormat == VF_WMV3 || mVideoFormat == VF_RV40){//self adjust.
 			    def->format.video.eColorFormat = mConvertDstFormat = (OMX_COLOR_FORMATTYPE) OMX_COLOR_FormatYUV420Tile;
 			}else{//TODO: add support for other soft dec formats.
@@ -385,7 +389,7 @@ OMX_ERRORTYPE HWDec::internalSetParameter(
 	      ALOGE("change w*h=(%d*%d)",mWidth,mHeight);
 	    */
 	}
-	
+
         default:
 	    return SimpleHardOMXComponent::internalSetParameter(index, params);
     }
@@ -432,11 +436,11 @@ void HWDec::onQueueFilled(OMX_U32 portIndex) {
     if (mOutputPortSettingsChange != NONE) {
 	return;
     }
-    
+
     if (mEOSStatus == OUTPUT_FRAMES_FLUSHED) {
 	return;
     }
-    
+
     List<BufferInfo *> &inQueue = getPortQueue(kInputPortIndex);
     List<BufferInfo *> &outQueue = getPortQueue(kOutputPortIndex);
 
@@ -467,7 +471,7 @@ void HWDec::onQueueFilled(OMX_U32 portIndex) {
 	BufferInfo *inInfo = *inQueue.begin();
 	OMX_BUFFERHEADERTYPE *inHeader = inInfo->mHeader;
 	inQueue.erase(inQueue.begin());//always consume inqueue buffer.
-	
+
 	if (inHeader->nFlags & OMX_BUFFERFLAG_EOS) {
 	    inInfo->mOwnedByUs = false;
 	    notifyEmptyBufferDone(inHeader);
@@ -476,7 +480,7 @@ void HWDec::onQueueFilled(OMX_U32 portIndex) {
 	}
 
 	uint64_t mFinalPts = inHeader->nTimeStamp;
-	
+
 	//input for lume decoder.
 	OMX_U8 * inBuf = inHeader->pBuffer + inHeader->nOffset;
 	OMX_U32 inLength = inHeader->nFilledLen;
@@ -513,14 +517,14 @@ void HWDec::onQueueFilled(OMX_U32 portIndex) {
 	//where decoding happens.
 	OMX_BOOL ret = DecodeVideo(mVideoDecoder,
 				   (OMX_U8*)outBuf,
-				   (OMX_U32*)&outLength,		 
+				   (OMX_U32*)&outLength,
 				   (OMX_U8**)(&inBuf),
 				   &inLength,
 				   &mPortParam,
 				   &frameCount,
 				   (OMX_BOOL)1,
 				   &dropFrame);
-	
+
 	status_t err = OK;
 	if(ret == OMX_TRUE){
 	    //decoded video size changed.
@@ -535,8 +539,8 @@ void HWDec::onQueueFilled(OMX_U32 portIndex) {
 		}else{
 		    mPortSettingsChangedWaitingForOutFull = true;
 		}
-		
-		portSettingsChanged = true;		    
+
+		portSettingsChanged = true;
 
 		//means to trigger crop event.
 		mCropParam.cropLeftOffset = mCropLeft;
@@ -544,54 +548,54 @@ void HWDec::onQueueFilled(OMX_U32 portIndex) {
 		mCropParam.cropOutWidth = (int)mPortParam.format.video.nFrameWidth;
 		mCropParam.cropOutHeight = (int)mPortParam.format.video.nFrameHeight;
 	    }
-	    
+
 	    if(mCropLeft != mCropParam.cropLeftOffset || mCropTop != mCropParam.cropTopOffset ||
 	       mCropWidth != mCropParam.cropOutWidth || mCropHeight != mCropParam.cropOutHeight){
 		ALOGE("Warning: lume video decoded crop left * top * width * height changed from (%d * %d * %d * %d) to (%d * %d * %d * %d)!!",
-		      mCropLeft, mCropTop, mCropWidth, mCropHeight, 
+		      mCropLeft, mCropTop, mCropWidth, mCropHeight,
 		      mCropParam.cropLeftOffset, mCropParam.cropTopOffset, mCropParam.cropOutWidth, mCropParam.cropOutHeight);
-		
+
 		if(outQueue.size() == kNumOutputBuffers){
 		    handleCropRectEvent(&mCropParam);
 		}
-		
+
 		portSettingsChanged = true;
 	    }
 
 	    if(!portSettingsChanged && outLength > 0){
 		void* inColorBuf = mOutBuf;
 		void* outColorBuf = outHeader->pBuffer;
-		
+
 		colorConvert(inColorBuf, outColorBuf);
-		
+
 		mFinalPts = ((PlanarImage*)outBuf)->pts;
 		outHeader->nTimeStamp = mFinalPts;
 		outHeader->nFlags = inHeader->nFlags;
 		outHeader->nFilledLen = mPictureSize;
 	    }
-	    
+
 	    if(outLength == 0){
 		err = ERROR_MALFORMED;
 	    }
 	}else{
 	    err = ERROR_MALFORMED;
 	}
-	
+
 	inInfo->mOwnedByUs = false;
 	notifyEmptyBufferDone(inHeader);
-	
+
 	if (portSettingsChanged) {
 	    portSettingsChanged = false;
 	    return;
 	}
 
-	//handle decoded fail by only skiping. 
+	//handle decoded fail by only skiping.
 	if(err != OK){
 	    ALOGE("Warning: lume video decode failed ,try next mFinalPts = %lld", mFinalPts);
 	    //notify(OMX_EventError, OMX_ErrorUndefined, ERROR_MALFORMED, NULL);//ignore the error.
 	    return;
 	}
-    
+
 	outQueue.erase(outQueue.begin());
 	outInfo->mOwnedByUs = false;
 	notifyFillBufferDone(outHeader);
@@ -603,21 +607,21 @@ bool HWDec::handleCropRectEvent(const CropParams *crop) {
     mCropTop = crop->cropTopOffset;
     mCropWidth = crop->cropOutWidth;
     mCropHeight = crop->cropOutHeight;
-    
+
     notify(OMX_EventPortSettingsChanged, 1,
 	   OMX_IndexConfigCommonOutputCrop, NULL);//to set nativewindow rect.
-    
+
     return true;
 }
 
 bool HWDec::handlePortSettingChangeEvent(const OMX_PARAM_PORTDEFINITIONTYPE *param){
     deInitConverter();
-    
+
     mWidth = (int)param->format.video.nFrameWidth;
     mHeight = (int)param->format.video.nFrameHeight;
-    
+
     updatePictureSize();
-    
+
     updatePortDefinitions();
     notify(OMX_EventPortSettingsChanged, 1, 0, NULL);
     mOutputPortSettingsChange = AWAITING_DISABLED;
@@ -718,7 +722,7 @@ void HWDec::updatePortDefinitions() {
 	{
 	    def->nBufferSize = (def->format.video.nFrameWidth * def->format.video.nFrameHeight * 3) / 2;
 	    break;
-	}	
+	}
     }
 }
 
@@ -737,12 +741,12 @@ bool HWDec::initDecoder() {
     if (!mShContext) {
 	mShContext = new sh_video_t;
 	memset(mShContext,0x0,sizeof(sh_video_t));
-	
+
 	mShContext->bih = new BITMAPINFOHEADER;//no extradata.
 	memset(mShContext->bih,0,sizeof(BITMAPINFOHEADER) + 0);
-    
+
 	mShContext->bih->biSize = sizeof(BITMAPINFOHEADER)  + 0;
-        
+
 	if (mVideoFormat == VF_MPEG4){
 	    mShContext->bih->biCompression = mmioFOURCC('F', 'M', 'P', '4');
 	    mShContext->format = mmioFOURCC('F', 'M', 'P', '4');
@@ -756,26 +760,26 @@ bool HWDec::initDecoder() {
 	    mShContext->bih->biCompression = mmioFOURCC('R','V','4','0');
 	    mShContext->format = mmioFOURCC('R','V','4','0');
 	}
-	
+
 	mShContext->is_rtsp = 1; //no extradata
 
 	mShContext->disp_w = mShContext->bih->biWidth = mWidth;
 	mShContext->disp_h = mShContext->bih->biHeight = mHeight;
-    
+
 	mShContext->bih->biBitCount = 16; //YUV
 	mShContext->bih->biSizeImage = mWidth * mHeight * mShContext->bih->biBitCount/8;
 	mShContext->bih->biCompression = mShContext->format;
-	
+
 	mVContextNeedFree = true;
     }
-    
+
     if(VideoDecSetConext(mVideoDecoder, mShContext)==OMX_FALSE){
 	ALOGE("Error: VideoDecSetConext failed!!!");
 	return false;
     }
 
     mDecInited = true;
-    
+
     return true;
 }
 
@@ -785,7 +789,7 @@ bool HWDec::deInitDecoder(){
 	    delete mShContext->bih;
 	    mShContext->bih = NULL;
 	}
-	
+
 	delete mShContext;
 	mShContext = NULL;
     }
@@ -794,7 +798,7 @@ bool HWDec::deInitDecoder(){
 	delete mVideoDecoder;
 	mVideoDecoder = NULL;
     }
-    
+
     mDecInited = false;
 
     return true;
@@ -809,7 +813,7 @@ bool HWDec::initConverter(){
 
 	HWColorConverter::Config config;
 	config.useDstGraphicBuffer = mUseGraphicBuffer;
-	
+
 	mConverter = new HWColorConverter(mConvertSrcFormat, mConvertDstFormat, config);
 	if(!mConverter->isValid()){
 	    ALOGE("Error: fail to init colorconverter!!!");
@@ -818,11 +822,11 @@ bool HWDec::initConverter(){
 	    return false;
 	}
     }//it is ok to output even without colorconverter.
-    
+
     mConverterInited = true;
 
     updatePictureSize();
-    
+
     return true;
 }
 
@@ -831,7 +835,7 @@ bool HWDec::deInitConverter(){
 	mConverter.clear();
 	mConverter = NULL;
     }
-    
+
     mConverterInited = false;
 
     return true;
@@ -864,7 +868,7 @@ void HWDec::updatePictureSize(){
 	{
 	    mPictureSize = (mWidth * mHeight * 3) / 2;
 	    break;
-	}	
+	}
     }
 }
 
@@ -880,7 +884,7 @@ void HWDec::colorConvert(void* inBuf, void* outBuf){
 	srcCropLeft = dstCropLeft = srcCropTop = dstCropTop = 0;
 	srcCropRight = dstCropRight = srcWidth - 1;
 	srcCropBottom = dstCropBottom = srcHeight -1;
-	
+
 	mConverter->convert(inBuf, srcStride,
 			    srcWidth, srcHeight,
 			    srcCropLeft, srcCropTop,
@@ -888,7 +892,7 @@ void HWDec::colorConvert(void* inBuf, void* outBuf){
 			    outBuf, dstStride,
 			    dstWidth, dstHeight,
 			    dstCropLeft, dstCropTop,
-			    dstCropRight, dstCropBottom);    
+			    dstCropRight, dstCropBottom);
     }
 }
 
@@ -896,7 +900,7 @@ void HWDec::updateVideoFormat(){
     PortInfo* info = editPortInfo(0);
     if(info){
 	OMX_PARAM_PORTDEFINITIONTYPE *def = &info->mDef;
-	
+
 	switch(mVideoFormat){
 	    case VF_MPEG4:
 	    {
@@ -919,7 +923,7 @@ void HWDec::updateVideoFormat(){
 	    case VF_RV40:
 	    {
 		def->format.video.cMIMEType = const_cast<char *>(MEDIA_MIMETYPE_VIDEO_RV40);
-		def->format.video.eCompressionFormat = OMX_VIDEO_CodingRV;      
+		def->format.video.eCompressionFormat = OMX_VIDEO_CodingRV;
 		break;
 	    }
 	    default:
@@ -940,11 +944,11 @@ OMX_ERRORTYPE createHardOMXComponent(
     if (codec == NULL) {
 	return OMX_ErrorInsufficientResources;
     }
-    
+
     OMX_ERRORTYPE err = codec->initCheck();
     if (err != OMX_ErrorNone)
 	return err;
-    
+
     codec->incStrong(NULL);
 
     return OMX_ErrorNone;

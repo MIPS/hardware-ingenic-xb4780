@@ -17,7 +17,8 @@ LOCAL_SHARED_LIBRARIES := \
 	libdl \
 	libui \
 	libjzipu \
-	libdmmu
+	libdmmu \
+	liblog
 
 LOCAL_STATIC_LIBRARIES := \
 	libstagefright_alume_codec
