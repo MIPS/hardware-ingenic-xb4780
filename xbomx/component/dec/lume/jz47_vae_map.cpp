@@ -80,7 +80,7 @@ volatile unsigned char *aux_base;
 
 unsigned char* mmap_tcsm(unsigned int offset, unsigned int len, int fd){
     unsigned char *addr = (unsigned char *)mmap(0, len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, offset);
-    if(addr < 0){
+    if((int) addr < 0){
 	ALOGE("Error: mmap offset %x failed with error:%s", offset, strerror(errno));
 	return NULL;
     }else{
