@@ -758,7 +758,7 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
     if (ret == -EPIPE) {
         /* In case of underrun, don't sleep since we want to catch up asap */
         pthread_mutex_unlock(&out->lock);
-        return ret;
+        return 0;
     }
     if (ret == 0) {
         out->written += out_frames;
@@ -801,7 +801,7 @@ static int out_get_presentation_position(const struct audio_stream_out *stream,
                                    uint64_t *frames, struct timespec *timestamp)
 {
     struct stream_out *out = (struct stream_out *)stream;
-    int ret = -1;
+    int ret = -EINVAL;
 
     pthread_mutex_lock(&out->lock);
 
