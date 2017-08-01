@@ -27,4 +27,14 @@ LOCAL_C_INCLUDES += \
 LOCAL_SHARED_LIBRARIES := liblog libcutils libtinyalsa libaudioutils libaudioroute
 LOCAL_MODULE_TAGS := optional
 
+ifeq (ci20,$(TARGET_DEVICE))
+	LOCAL_CFLAGS += \
+		-DCI20_AUDIO
+endif
+
+ifeq (npm801,$(TARGET_DEVICE))
+	LOCAL_CFLAGS += \
+		-DNPM801_AUDIO
+endif
+
 include $(BUILD_SHARED_LIBRARY)

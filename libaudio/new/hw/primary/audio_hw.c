@@ -190,14 +190,15 @@ static void release_buffer(struct resampler_buffer_provider *buffer_provider,
 
 static void select_devices(struct audio_device *adev)
 {
+#ifdef CI20_AUDIO
     int hdmi_on;
     int headphone_on;
     int headset_mic_on;
 
     hdmi_on = adev->out_device & AUDIO_DEVICE_OUT_AUX_DIGITAL;
     headphone_on = adev->out_device & (AUDIO_DEVICE_OUT_WIRED_HEADSET |
-                                    AUDIO_DEVICE_OUT_WIRED_HEADPHONE);
-    headset_mic_on = adev->in_device & AUDIO_DEVICE_IN_WIRED_HEADSET ;
+               AUDIO_DEVICE_OUT_WIRED_HEADPHONE);
+    headset_mic_on = adev->in_device & AUDIO_DEVICE_IN_WIRED_HEADSET;
 
     audio_route_reset(adev->ar);
 
@@ -212,6 +213,28 @@ static void select_devices(struct audio_device *adev)
 
     ALOGV("hdmi=%c hp=%c headset_mic=%c", hdmi_on ? 'y' : 'n',
           headphone_on ? 'y' : 'n', headset_mic_on ? 'y' : 'n');
+#endif
+
+#ifdef NPM801_AUDIO
+    int hdmi_on = adev->out_device & (AUDIO_DEVICE_OUT_LINE |
+               AUDIO_DEVICE_OUT_AUX_DIGITAL);
+
+    audio_route_reset(adev->ar);
+
+    if (hdmi_on) {
+        audio_route_apply_path(adev->ar, "hdmi");
+    } else {
+        /*
+         * Same PCM is used for both headphones and speakers.
+         * Because of that we treat them as the same route.
+         */
+        audio_route_apply_path(adev->ar, "headphone-speakers");
+    }
+
+    audio_route_update_mixer(adev->ar);
+
+    ALOGV("hdmi=%c", hdmi_on ? 'y' : 'n');
+#endif
 }
 
 /* must be called with hw device and output stream mutexes locked */
@@ -269,6 +292,7 @@ static int start_output_stream(struct stream_out *out)
      * (speaker/headphone) PCM or the BC SCO PCM open at
      * the same time.
      */
+#ifdef CI20_AUDIO
     if (adev->out_device & AUDIO_DEVICE_OUT_ALL_SCO) {
         device = PCM_DEVICE_SCO;
         out->pcm_config = &pcm_config_sco;
@@ -281,6 +305,22 @@ static int start_output_stream(struct stream_out *out)
         out->pcm_config = &pcm_config_out;
         out->buffer_type = OUT_BUFFER_TYPE_UNKNOWN;
     }
+#endif
+
+#ifdef NPM801_AUDIO
+    if (adev->out_device & AUDIO_DEVICE_OUT_ALL_SCO) {
+        device = PCM_DEVICE_SCO;
+        out->pcm_config = &pcm_config_sco;
+    } else if (adev->out_device & (AUDIO_DEVICE_OUT_LINE |
+               AUDIO_DEVICE_OUT_AUX_DIGITAL)) {
+        device = PCM_DEVICE_HDMI;
+        out->pcm_config = &pcm_config_out;
+        out->buffer_type = OUT_BUFFER_TYPE_UNKNOWN;
+    } else {
+        device = PCM_DEVICE_HEADSET;
+        out->pcm_config = &pcm_config_sco;
+    }
+#endif
 
     /*
      * All open PCMs can only use a single group of rates at once:
@@ -574,8 +614,12 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
                     (adev->out_device & AUDIO_DEVICE_OUT_ALL_SCO)) ||
                 ((val & AUDIO_DEVICE_OUT_WIRED_HEADPHONE) ^
                     (adev->out_device & AUDIO_DEVICE_OUT_WIRED_HEADPHONE)) ||
+                ((val & AUDIO_DEVICE_OUT_SPEAKER) ^
+                    (adev->out_device & AUDIO_DEVICE_OUT_SPEAKER)) ||
                 ((val & AUDIO_DEVICE_OUT_AUX_DIGITAL) ^
-                    (adev->out_device & AUDIO_DEVICE_OUT_AUX_DIGITAL))) {
+                    (adev->out_device & AUDIO_DEVICE_OUT_AUX_DIGITAL)) ||
+                ((val & AUDIO_DEVICE_OUT_LINE) ^
+                    (adev->out_device & AUDIO_DEVICE_OUT_LINE))) {
                 pthread_mutex_lock(&out->lock);
                 do_out_standby(out);
                 pthread_mutex_unlock(&out->lock);
