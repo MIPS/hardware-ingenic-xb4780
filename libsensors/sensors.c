@@ -89,7 +89,7 @@ static uint32_t sensors_get_list(struct sensors_module_t* module,struct sensor_t
 /*****************************************************************************/
 
 struct sensors_context_t {
-	struct sensors_poll_device_t device;
+	struct sensors_poll_device_1 device;
 	struct sensors_event_t sensor_events[SENSORS_COUNT];
 	int con_fds[SENSORS_COUNT];
 	int data_fds[SENSORS_COUNT];
@@ -124,6 +124,19 @@ static int sensor_devices_setDelay(struct sensors_context_t *dev,int handle, int
 	if (ioctl(dev->con_fds[handle],SENSOR_IOCTL_SET_DELAY, &ms) < 0)
 		ALOGE ("handle:%d ECS_IOCTL_SET_DELAY error (%s)",handle, strerror(errno));
 	return 0;
+}
+
+static int sensor_devices_batch(struct sensors_poll_device_1 *dev, int handle,
+		int flags, int64_t sampling_period_ns, int64_t max_report_latency_ns)
+{
+	/* TODO: Implement this function */
+	return 0;
+}
+
+static int sensor_devices_flush(struct sensors_poll_device_1 *dev, int handle)
+{
+	/* TODO: Implement this function */
+	return -EINVAL;
 }
 
 
@@ -463,9 +476,11 @@ static int open_sensors(const struct hw_module_t* module, const char* name,
 		dev->device.activate 	= sensor_devices_activate;
 		dev->device.setDelay 	= sensor_devices_setDelay;
 		dev->device.poll 	= sensor_devices_poll;
+		dev->device.batch 	= sensor_devices_batch;
+		dev->device.flush 	= sensor_devices_flush;
 
 		dev->device.common.tag = HARDWARE_DEVICE_TAG;
-		dev->device.common.version = 1;
+		dev->device.common.version = SENSORS_DEVICE_API_VERSION_1_3;
 		dev->device.common.module = module;
 		dev->device.common.close = sensor_devices_common_close;
 		*device = &dev->device.common;
