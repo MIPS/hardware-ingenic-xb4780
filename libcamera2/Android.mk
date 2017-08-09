@@ -44,7 +44,7 @@ LOCAL_C_INCLUDES += \
 
 LOCAL_SHARED_LIBRARIES:= \
 	libui \
-	libgui \
+	libsensor \
 	libskia \
 	libandroid_runtime \
 	libandroid \
