@@ -96,7 +96,8 @@ namespace android {
         if ((NULL != mEncoder) && (mEncoder->encode(&mStream, (void*)pY, 
                                                     tmpWidth, tmpHeight, offsets, quality))) {
             ALOGV("%s: Compressed JPEG: %d[%dx%d] -> %d bytes",
-                  __FUNCTION__, (tmpWidth * tmpHeight * 12)/8, tmpWidth, tmpHeight, mStream.getOffset());
+                    __FUNCTION__, (tmpWidth * tmpHeight * 12) / 8, tmpWidth,
+                    tmpHeight, mStream.bytesWritten());
             return NO_ERROR;
         } else {
             ALOGE("%s: JPEG compression failed, mEncoder = %s", __FUNCTION__, mEncoder?"not null":"NULL");
@@ -104,7 +105,8 @@ namespace android {
         }
     }
 
-    status_t CameraCompressor::compress_to_jpeg(ExifElementsTable* exif,camera_memory_t** jpegMem) {
+    status_t CameraCompressor::compress_to_jpeg(ExifElementsTable* exif,
+            camera_memory_t** jpegMem, void* interface) {
         status_t ret = NO_ERROR;
         camera_memory_t* picJpegMem = NULL;
         camera_memory_t* thumbJpegMem = NULL;
@@ -121,7 +123,7 @@ namespace android {
             }
 
             thumb_size = getCompressedSize();
-            thumbJpegMem = mRequiredMem(-1, thumb_size, 1, NULL);
+            thumbJpegMem = mRequiredMem(-1, thumb_size, 1, interface);
             if (NULL !=  thumbJpegMem && thumbJpegMem->data !=NULL) {
                 getCompressedImage(thumbJpegMem->data);
                 resetSkstream();
@@ -142,7 +144,8 @@ namespace android {
         }
 
         jpeg_size = getCompressedSize();
-        picJpegMem = mRequiredMem(-1, (jpeg_size + thumb_size*2), 1, NULL);
+        picJpegMem = mRequiredMem(-1, (jpeg_size + thumb_size * 2), 1,
+                interface);
         if (NULL !=  picJpegMem && picJpegMem->data != NULL) {
             getCompressedImage(picJpegMem->data);
             resetSkstream();
@@ -165,7 +168,8 @@ namespace android {
 
                 exif_section = FindSection(M_EXIF);
                 if (NULL != exif_section) {
-                    *jpegMem = mRequiredMem(-1, (jpeg_size + exif_section->Size), 1, NULL);
+                    *jpegMem = mRequiredMem(-1, jpeg_size + exif_section->Size,
+                            1, interface);
                     if (NULL != (*jpegMem) && (*jpegMem)->data) {
                         exif->saveJpeg((unsigned char*)((*jpegMem)->data),(jpeg_size + exif_section->Size));
                     }
@@ -174,7 +178,7 @@ namespace android {
             delete exif;
             exif = NULL;
         } else {
-            *jpegMem = mRequiredMem(-1, jpeg_size,1,NULL);
+            *jpegMem = mRequiredMem(-1, jpeg_size, 1, interface);
             if ((*jpegMem) && (*jpegMem)->data)
                 {
                     memcpy((*jpegMem)->data, picJpegMem->data, jpeg_size);

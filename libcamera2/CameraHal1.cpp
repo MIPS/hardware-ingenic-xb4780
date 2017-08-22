@@ -192,6 +192,7 @@ namespace android{
     status_t CameraHal1::initialize() {
         status_t ret = NO_ERROR;
         mDevice->connectDevice(mcamera_id);
+        mDevice->setInterface(mcamera_interface);
         mJzParameters->initDefaultParameters(mirror?CAMERA_FACING_FRONT:CAMERA_FACING_BACK);
         getWorkThread()->startThread(false);
         mWorkerQueue = new WorkQueue(10,false);
@@ -462,7 +463,8 @@ namespace android{
                                                + mRecordingFrameSize * mRecordingindex);
                     if (mzoomVal != 0) {
                         if (mget_memory != NULL) {
-                            tmpHeap = mget_memory(-1, getCurrentFrameSize(), 1, NULL);
+                            tmpHeap = mget_memory(-1, getCurrentFrameSize(), 1,
+                                        mcamera_interface);
                             if (tmpHeap != NULL) {
                                 dmmu_map_memory((uint8_t*)recordingData->data,recordingData->size);
                                 do_zoom((uint8_t*)tmpHeap->data, (uint8_t*)recordingData->data);
@@ -651,7 +653,7 @@ namespace android{
                 ccc->cimyuv420b_to_tile420(mCurrentFrame); //1- 4ms
             }
 
-            takingPictureHeap = mget_memory(-1, size,1, NULL);
+            takingPictureHeap = mget_memory(-1, size, 1, mcamera_interface);
             memset(takingPictureHeap->data, 0, size);
             dmmu_map_memory((uint8_t*)takingPictureHeap->data,takingPictureHeap->size);
             status_t ret = NO_ERROR;
@@ -972,6 +974,7 @@ namespace android{
         }
 
         mDevice->disConnectDevice();
+        mModuleOpened = false;
 
         return NO_ERROR;
     }
@@ -1037,7 +1040,8 @@ namespace android{
             }
 
 	    mRecordingFrameSize = (mRecordingFrameSize + 255) & ~0xFF; // Encoding buffer must be 256 aligned
-            mRecordingHeap = mget_memory(-1, mRecordingFrameSize,RECORDING_BUFFER_NUM, NULL);
+            mRecordingHeap = mget_memory(-1, mRecordingFrameSize,
+                        RECORDING_BUFFER_NUM, mcamera_interface);
             dmmu_map_memory((uint8_t*)mRecordingHeap->data,mRecordingHeap->size);
             ALOGV("%s: line=%d",__FUNCTION__,__LINE__);
         }
@@ -1089,7 +1093,8 @@ namespace android{
                 mPreviewHeap = NULL;
             }
 
-            mPreviewHeap = mget_memory(-1, mPreviewFrameSize,PREVIEW_BUFFER_CONUT,NULL);
+            mPreviewHeap = mget_memory(-1, mPreviewFrameSize,
+                        PREVIEW_BUFFER_CONUT, mcamera_interface);
             dmmu_map_memory((uint8_t*)mPreviewHeap->data, mPreviewHeap->size);
         }
     }
@@ -1394,7 +1399,9 @@ namespace android{
             if (mPreviewWinFmt == HAL_PIXEL_FORMAT_RGB_565) {
                 mFaceCount = CameraFaceDetect::getInstance()->detect((uint16_t*)dst);
             } else {
-                camera_memory_t* rgb565 = mget_memory(-1, (srcWidth*srcHeight*2), 1, NULL);
+                camera_memory_t* rgb565 = mget_memory(-1,
+                                srcWidth * srcHeight * 2, 1,
+                                mcamera_interface);
                 if ((rgb565 != NULL) && (rgb565->data != NULL)) {
                     if (mCurrentFrame->format == HAL_PIXEL_FORMAT_YCbCr_422_I) {
                         ccc->yuyv_to_rgb565(src, srcStride, (uint8_t*)(rgb565->data),
@@ -1467,7 +1474,8 @@ namespace android{
 #else
                 if (mget_memory) {
                     int size = getCurrentFrameSize();
-                    camera_memory_t* recordingData = mget_memory(-1,size,1,NULL);
+                    camera_memory_t* recordingData = mget_memory(-1, size, 1,
+                                mcamera_interface);
                     if ((recordingData != NULL) && (recordingData->data != NULL)) {
                         memcpy(recordingData->data, (uint8_t*)mCurrentFrame->yAddr, size);
                         AutoMutex lock(recordingDataQueueLock);
@@ -1501,7 +1509,8 @@ namespace android{
 
             if (cwidth < mCurrentFrame->width ||
                 cheight < mCurrentFrame->height) {
-                tmp_mem = mget_memory(-1, cwidth*cheight*2, 1, NULL);
+                tmp_mem = mget_memory(-1, cwidth*cheight * 2, 1,
+                                mcamera_interface);
                 ret = ipu_zoomIn_scale((uint8_t*)tmp_mem->data, cwidth, cheight, (uint8_t*)mCurrentFrame->yAddr,
                                        mCurrentFrame->width, mCurrentFrame->height, mCurrentFrame->format, 0, mCurrentFrame->width);
                 if (ret != NO_ERROR) {
@@ -1716,7 +1725,8 @@ namespace android{
                     frame_metadata.faces[i].right_eye[1] = (int32_t)ry;
                 }
 
-                camera_memory_t *tmpBuffer = mget_memory(-1, 1, 1, NULL);
+                camera_memory_t *tmpBuffer = mget_memory(-1, 1, 1,
+                                mcamera_interface);
                 mdata_cb(CAMERA_MSG_PREVIEW_METADATA, tmpBuffer, 0, &frame_metadata,mcamera_interface);
 
                 if ( NULL != tmpBuffer ) {
@@ -1749,7 +1759,8 @@ namespace android{
             mTakingPicture = false;
             int size = getCurrentFrameSize();
 
-            camera_memory_t* takingPictureHeap = mget_memory(-1, size,1, NULL);
+            camera_memory_t* takingPictureHeap = mget_memory(-1, size, 1,
+                        mcamera_interface);
             memset(takingPictureHeap->data, 0, size);
             dmmu_map_memory((uint8_t*)takingPictureHeap->data,takingPictureHeap->size);
 
@@ -1845,8 +1856,10 @@ namespace android{
 
         int jpeg_size = csize;
         int thumb_size = ctnsize;
-        camera_memory_t* jpeg_buff = mget_memory(-1,csize+1000 ,1,NULL);
-        camera_memory_t* jpeg_tn_buff = (ctnsize == 0) ? NULL : (mget_memory(-1, ctnsize, 1, NULL));
+        camera_memory_t* jpeg_buff = mget_memory(-1, csize + 1000, 1,
+                        mcamera_interface);
+        camera_memory_t* jpeg_tn_buff = (ctnsize == 0) ? NULL :
+                        (mget_memory(-1, ctnsize, 1, mcamera_interface));
         camera_memory_t* jpegMem = NULL;
         camera_memory_t* captureHeap = NULL;
         {
@@ -1897,7 +1910,7 @@ namespace android{
             Section_t* exif_section = NULL;
             exif_section = FindSection(M_EXIF);
             if (NULL != exif_section) {
-                jpegMem = mget_memory(-1, (jpeg_size + exif_section->Size), 1, NULL);
+                jpegMem = mget_memory(-1, (jpeg_size + exif_section->Size), 1, mcamera_interface);
                 if ((NULL != jpegMem) && (jpegMem->data != NULL)) {
                     exif->saveJpeg((unsigned char*)(jpegMem->data),(jpeg_size + exif_section->Size));
                     mdata_cb(CAMERA_MSG_COMPRESSED_IMAGE, jpegMem, 0, NULL, mcamera_interface);
@@ -1958,7 +1971,7 @@ namespace android{
         }
         if (ccc && (mCurrentFrame->format == HAL_PIXEL_FORMAT_YV12
                     || mCurrentFrame->format == HAL_PIXEL_FORMAT_JZ_YUV_420_P)) {
-            tmp_buf = mget_memory(-1,captureHeap->size,1,NULL);
+            tmp_buf = mget_memory(-1, captureHeap->size, 1, mcamera_interface);
             ccc->yuv420p_to_yuv420sp((uint8_t*)(captureHeap->data),
                                      (uint8_t*)tmp_buf->data,mCurrentFrame->width,mCurrentFrame->height);
             params.src = (uint8_t*)(tmp_buf->data);
@@ -1986,7 +1999,8 @@ namespace android{
         ExifElementsTable* exif = new ExifElementsTable();
         if (NULL != exif) {
             mJzParameters->setUpEXIF(exif);
-            ret = compressor.compress_to_jpeg(exif, jpeg_buff);
+            ret = compressor.compress_to_jpeg(exif, jpeg_buff,
+                        mcamera_interface);
         }
 
         if (captureHeap != NULL) {

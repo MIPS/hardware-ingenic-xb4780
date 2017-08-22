@@ -262,7 +262,7 @@ namespace android{
             jpeg_write_scanlines(&cinfo, &line, 1);
         }
         jpeg_finish_compress(&cinfo);
-        *dest_size = stream.getOffset();
+        *dest_size = stream.bytesWritten();
         stream.copyTo((void*)dest_img);
         stream.reset();
         jpeg_destroy_compress(&cinfo);

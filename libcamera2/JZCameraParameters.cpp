@@ -1210,7 +1210,7 @@ namespace android {
     bool JZCameraParameters::isParameterValid(const char *param, const char *supportedParams) {
 
         bool ret = true;
-        char *pos = NULL;
+        const char *pos = NULL;
 
         ALOGV("%s: (%d) will set param: %s, suppoted params: %s",__FUNCTION__,
             mCameraId ,param, supportedParams);

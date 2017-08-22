@@ -102,7 +102,7 @@ namespace android {
 
         size_t getCompressedSize() const
         {
-            return mStream.getOffset();
+            return mStream.bytesWritten();
         }
      
         void resetSkstream(void)
@@ -123,7 +123,8 @@ namespace android {
                 }
         }
 
-        status_t compress_to_jpeg(ExifElementsTable* exif,camera_memory_t** jpegMem);
+        status_t compress_to_jpeg(ExifElementsTable* exif,
+                camera_memory_t** jpegMem, void* interface);
 
     };
 

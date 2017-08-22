@@ -141,7 +141,7 @@ namespace android {
     int CameraV4L2Device::init_read (unsigned int buffer_size,
                                      camera_request_memory get_memory) {
 
-        videoIn->read_write_buffers = get_memory(-1, buffer_size, 1, NULL);
+        videoIn->read_write_buffers = get_memory(-1, buffer_size, 1, mInterface);
         if (videoIn->read_write_buffers == NULL) {
             ALOGE("Out of memory");
             return NO_MEMORY;
@@ -194,7 +194,8 @@ namespace android {
             }
 
             if (mMmapPreviewBufferHandle == NULL) {
-                mMmapPreviewBufferHandle = get_memory(-1,videoIn->buf.length, videoIn->rb.count, NULL);
+                mMmapPreviewBufferHandle = get_memory(-1, videoIn->buf.length,
+                        videoIn->rb.count, mInterface);
                 dmmu_info.vaddr = mMmapPreviewBufferHandle->data;
                 dmmu_info.size = mMmapPreviewBufferHandle->size;
                 dmmu_map_buffer(&dmmu_info);
@@ -266,7 +267,7 @@ namespace android {
         }
 
         preview_buffer.common = get_memory(preview_buffer.fd,
-                              preview_buffer.size,preview_buffer.nr,NULL);
+                preview_buffer.size, preview_buffer.nr, mInterface);
         if (preview_buffer.common != NULL) {
             for (int i=0; i<preview_buffer.nr; i++) {
                 mPreviewBuffer[i] = (uint8_t*)preview_buffer.common->data

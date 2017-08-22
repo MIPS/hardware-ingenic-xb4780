@@ -72,6 +72,8 @@ namespace android {
     };
 
     class CameraDeviceCommon : public virtual RefBase{
+    protected:
+        void* mInterface;
 
     public:
         virtual ~CameraDeviceCommon(void){ }
@@ -118,6 +120,7 @@ namespace android {
         virtual bool usePmem(void) = 0;
         virtual bool useIon(void) = 0;
         virtual void clean_queued(void) { }
+        virtual inline void setInterface(void* interface) { mInterface = interface; }
 
     public:
         enum {
