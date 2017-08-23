@@ -403,8 +403,6 @@ namespace android {
                     mControlFd = thread_fds[0]; //read
 #ifdef USE_X2D
                     mCameraHal->open_x2d_dev();
-#else
-                    mCameraHal->open_ipu_dev();
 #endif
                     changed = true;
                     start = 0;

@@ -318,6 +318,7 @@ namespace android{
         }
 
         AutoMutex lock(mlock);
+        open_ipu_dev();
         res = mDevice->connectDevice(mcamera_id);
         mDevice->getPreviewSize(&mRawPreviewWidth, &mRawPreviewHeight);
         mJzParameters->resetSizeChanged();
@@ -380,6 +381,7 @@ namespace android{
             mreceived_cmd = false;
         }
         ret = mDevice->stopDevice();
+        close_ipu_dev();
         ALOGV("%s",__FUNCTION__);
         if (mPreviewHeap) {
             mPreviewFrameSize = 0;
@@ -1132,7 +1134,6 @@ namespace android{
             exit_thread:
                 j = 0;
                 close_x2d_dev();
-                close_ipu_dev();
                 thread_state = WorkThread::THREAD_EXIT;
                 timeout = WAIT_TIME;
                 startTime = 0;
