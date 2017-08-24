@@ -98,6 +98,14 @@ namespace android{
             if (mJzParameters == NULL) {
                 ALOGE("%s: create parameters object fail",__FUNCTION__);
             }
+
+            thread_state = WorkThread::THREAD_IDLE;
+            thread_errors = 0;
+            thread_dropframe = 0;
+            thread_timeout = WAIT_TIME;
+            thread_startTime = 0;
+            thread_workTime = 0;
+
             mWorkerThread = new WorkThread(this);
             if (getWorkThread() == NULL) {
                 ALOGE("%s: could not create work thread", __FUNCTION__);
@@ -1102,21 +1110,13 @@ namespace android{
     }
 
     bool CameraHal1::thread_body(void) {
-
-        static int j = 0;
-        static int dropframe = 0;
-        static int64_t timeout = WAIT_TIME;
-        static int64_t startTime = 0;
-        static int64_t workTime = 0;
-        static int thread_state = WorkThread::THREAD_IDLE;
-
-        WorkThread::ControlCmd res = getWorkThread()->receiveCmd(-1,timeout);
+        WorkThread::ControlCmd res = getWorkThread()->receiveCmd(-1, thread_timeout);
 
         switch (res) {
 
         case WorkThread::THREAD_ERROR:
             {
-                if (j++ > 10) {
+                if (thread_errors++ > 10) {
                     ALOGE("%s: received cmd error, %s",__FUNCTION__, strerror(errno));
                     goto exit_thread;
                 }
@@ -1132,13 +1132,13 @@ namespace android{
         case WorkThread::THREAD_EXIT:
             {
             exit_thread:
-                j = 0;
+                thread_errors = 0;
                 close_x2d_dev();
                 thread_state = WorkThread::THREAD_EXIT;
-                timeout = WAIT_TIME;
-                startTime = 0;
-                dropframe = 0;
-                workTime = 0;
+                thread_timeout = WAIT_TIME;
+                thread_startTime = 0;
+                thread_dropframe = 0;
+                thread_workTime = 0;
                 ALOGV("%s: Worker thread has been exit.",__FUNCTION__);
                 return false;
             }
@@ -1152,7 +1152,7 @@ namespace android{
         case WorkThread::THREAD_IDLE:
             {
                 thread_state = WorkThread::THREAD_IDLE;
-                dropframe = 0;
+                thread_dropframe = 0;
                 {
                     AutoMutex lock(cmd_lock);
                     mreceived_cmd = true;
@@ -1178,7 +1178,7 @@ namespace android{
 
         if (thread_state == WorkThread::THREAD_READY) {
 
-            startTime = systemTime(SYSTEM_TIME_MONOTONIC);
+            thread_startTime = systemTime(SYSTEM_TIME_MONOTONIC);
 
             mDevice->flushCache(NULL,0);
 
@@ -1195,7 +1195,7 @@ namespace android{
             mCurrentFrame = (CameraYUVMeta*)mDevice->getCurrentFrame(); //40ms
 
             if (mCurrentFrame == NULL) {
-                timeout = WAIT_TIME;
+                thread_timeout = WAIT_TIME;
                 thread_state = WorkThread::THREAD_IDLE;
                 //CHECK(!"current frame is null");
                 return true;
@@ -1210,17 +1210,17 @@ namespace android{
             mCurFrameTimestamp = systemTime(SYSTEM_TIME_MONOTONIC);
 
             postFrameForNotify(); // 5ms
-            if (dropframe == LOST_FRAME_NUM) {
+            if (thread_dropframe == LOST_FRAME_NUM) {
                 postFrameForPreview(); // 5ms
             } else {
-                dropframe++;
+                thread_dropframe++;
             }
 
-            workTime = systemTime(SYSTEM_TIME_MONOTONIC) - mCurFrameTimestamp;
+            thread_workTime = systemTime(SYSTEM_TIME_MONOTONIC) - mCurFrameTimestamp;
 
-            timeout = mPreviewAfter - workTime - (mCurFrameTimestamp - startTime); // 50ms - 12ms - (45 + 2) = -9ms
+            thread_timeout = mPreviewAfter - thread_workTime - (mCurFrameTimestamp - thread_startTime); // 50ms - 12ms - (45 + 2) = -9ms
         } else {
-            timeout = WAIT_TIME;
+            thread_timeout = WAIT_TIME;
         }
 
         return true;

@@ -478,6 +478,12 @@ namespace android {
 
     private:
         sp<WorkThread> mWorkerThread;
+        int thread_state;
+        int thread_errors;
+        int thread_dropframe;
+        int64_t thread_timeout;
+        int64_t thread_startTime;
+        int64_t thread_workTime;
 
     private:
         bool startAutoFocus();
