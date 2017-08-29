@@ -1032,29 +1032,25 @@ namespace android{
     void CameraHal1::initVideoHeap(int width, int height) {
 
         int video_width = width, video_height = height;
-        int how_recording_big = 0;
 
         if (mget_memory == NULL) {
             ALOGE("No memory allocator available");
             return;
         }
 
-        how_recording_big = (video_width * video_height) * 12/8;
-        if (how_recording_big != mRecordingFrameSize) {
-            mRecordingFrameSize = how_recording_big;
+        mRecordingFrameSize = (video_width * video_height) * 12/8;
 
-            if (mRecordingHeap) {
-                dmmu_unmap_memory((uint8_t*)mRecordingHeap->data,mRecordingHeap->size);
-                mRecordingHeap->release(mRecordingHeap);
-                mRecordingHeap = NULL;
-            }
+        if (mRecordingHeap) {
+            dmmu_unmap_memory((uint8_t*)mRecordingHeap->data,mRecordingHeap->size);
+            mRecordingHeap->release(mRecordingHeap);
+            mRecordingHeap = NULL;
+        }
 
-	    mRecordingFrameSize = (mRecordingFrameSize + 255) & ~0xFF; // Encoding buffer must be 256 aligned
+        mRecordingFrameSize = (mRecordingFrameSize + 255) & ~0xFF; // Encoding buffer must be 256 aligned
             mRecordingHeap = mget_memory(-1, mRecordingFrameSize,
                         RECORDING_BUFFER_NUM, mcamera_interface);
             dmmu_map_memory((uint8_t*)mRecordingHeap->data,mRecordingHeap->size);
             ALOGV("%s: line=%d",__FUNCTION__,__LINE__);
-        }
     }
 
     void CameraHal1::initPreviewHeap(void) {
