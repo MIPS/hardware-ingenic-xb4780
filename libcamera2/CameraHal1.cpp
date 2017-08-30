@@ -78,7 +78,6 @@ namespace android{
          mipu(NULL),
          ipu_open_status(false),
          init_ipu_first(false),
-         x2d_fd(-1),
          mreceived_cmd(false),
          mSensorListener(NULL),
          mWorkerThread(NULL),
@@ -1129,7 +1128,6 @@ namespace android{
             {
             exit_thread:
                 thread_errors = 0;
-                close_x2d_dev();
                 thread_state = WorkThread::THREAD_EXIT;
                 thread_timeout = WAIT_TIME;
                 thread_startTime = 0;
@@ -1375,16 +1373,7 @@ namespace android{
             break;
 
         case HAL_PIXEL_FORMAT_RGB_565:
-#ifdef SOFT_CONVERT
-            if (mCurrentFrame->format == HAL_PIXEL_FORMAT_JZ_YUV_420_B) {
-                ccc->tile420_to_rgb565(mCurrentFrame, dst);
-            } else if (mCurrentFrame->format == HAL_PIXEL_FORMAT_YCbCr_422_I){
-                ipu_convert_dataformat(mCurrentFrame,dst,buffer);
-                //ccc->yuyv_to_rgb565(src, srcStride, dst, dstStride, srcWidth, srcHeight);
-            }
-#else
             ipu_convert_dataformat(mCurrentFrame,dst,buffer);
-#endif
             break;
 
         default:
@@ -1405,17 +1394,8 @@ namespace android{
                                             mPreviewWinWidth*2, srcWidth, srcHeight);
                         mFaceCount = CameraFaceDetect::getInstance()->detect((uint16_t*)rgb565->data);
                     } else if (mCurrentFrame->format == HAL_PIXEL_FORMAT_JZ_YUV_420_B) {
-#ifdef SOFT_CONVERT
-                        ccc->tile420_to_rgb565(mCurrentFrame, (uint8_t*)(rgb565->data));
-#else
-#ifdef USE_X2D
-                        x2d_convert_dataformat(mCurrentFrame, 
-                                               (uint8_t*)(rgb565->data), buffer);
-#else
                         if (ipu_open_status)
                             ipu_convert_dataformat(mCurrentFrame,(uint8_t*)(rgb565->data), buffer);
-#endif
-#endif
                         mFaceCount = CameraFaceDetect::getInstance()->detect((uint16_t*)rgb565->data);
                     } else if (mCurrentFrame->format == HAL_PIXEL_FORMAT_JZ_YUV_420_P) {
                         ccc->yuv420p_to_rgb565(src, (uint8_t*)(rgb565->data),srcWidth, srcHeight);
@@ -2064,133 +2044,6 @@ namespace android{
         return NO_ERROR;
     }
 
-    void CameraHal1::x2d_convert_dataformat(CameraYUVMeta* yuvMeta, 
-                                            uint8_t* dst_buf, buffer_handle_t *buffer) {
-
-        struct jz_x2d_config x2d_cfg;
-        IMG_native_handle_t* dst_handle = NULL;
-        int map_size = 0;
-        int ret = NO_ERROR;
-
-        if (x2d_fd < 0) {
-            ALOGE("%s: open %s error or not open it", __FUNCTION__, X2D_NAME);
-            return;
-        }
-
-        dst_handle = (IMG_native_handle_t*)(*buffer);
-        map_size = iStride(dst_handle) * dst_handle->iHeight * (dst_handle->uiBpp >> 3);
-        dmmu_map_memory((uint8_t*)dst_buf,map_size);
-
-        mDevice->flushCache((void*)yuvMeta->yAddr, map_size);
-        /* set dst configs */
-        x2d_cfg.dst_address = (int)dst_buf;
-        x2d_cfg.dst_width = dst_handle->iWidth;
-        x2d_cfg.dst_height = dst_handle->iHeight;
-        if (mPreviewWinFmt == HAL_PIXEL_FORMAT_RGB_565)
-            x2d_cfg.dst_format = X2D_OUTFORMAT_RGB565;
-        else if (mPreviewWinFmt == HAL_PIXEL_FORMAT_RGBA_8888
-                 || mPreviewWinFmt == HAL_PIXEL_FORMAT_RGBX_8888
-                 || mPreviewWinFmt == HAL_PIXEL_FORMAT_BGRA_8888)
-            x2d_cfg.dst_format = X2D_OUTFORMAT_XRGB888;
-        else if (mPreviewWinFmt == HAL_PIXEL_FORMAT_RGB_888)
-            x2d_cfg.dst_format = X2D_OUTFORMAT_ARGB888;
-        x2d_cfg.dst_stride = iStride(dst_handle) * (dst_handle->uiBpp >> 3);
-        x2d_cfg.dst_back_en = 0;
-        x2d_cfg.dst_glb_alpha_en = 1;
-        x2d_cfg.dst_preRGB_en = 0;
-        x2d_cfg.dst_mask_en = 1;
-        x2d_cfg.dst_alpha_val = 0x80;
-        x2d_cfg.dst_bcground = 0xff0ff0ff;
-
-        x2d_cfg.tlb_base = mDevice->getTlbBase();
-
-        /* layer num */
-        x2d_cfg.layer_num = 1;
-
-        /* src yuv address */
-        if (yuvMeta->format == HAL_PIXEL_FORMAT_JZ_YUV_420_B) {
-            x2d_cfg.lay[0].addr = yuvMeta->yAddr;
-            x2d_cfg.lay[0].u_addr = yuvMeta->yAddr + (yuvMeta->width*yuvMeta->height);
-
-            x2d_cfg.lay[0].v_addr = (int)(x2d_cfg.lay[0].u_addr);
-            x2d_cfg.lay[0].y_stride = yuvMeta->yStride/16;
-            x2d_cfg.lay[0].v_stride = yuvMeta->vStride/16;
-
-            /* src data format */
-            x2d_cfg.lay[0].format = X2D_INFORMAT_TILE420;
-        } else if (yuvMeta->format ==  HAL_PIXEL_FORMAT_JZ_YUV_420_P) {
-            x2d_cfg.lay[0].addr = yuvMeta->yAddr;
-            x2d_cfg.lay[0].u_addr = yuvMeta->uAddr;
-            x2d_cfg.lay[0].v_addr = yuvMeta->vAddr;
-            x2d_cfg.lay[0].y_stride = yuvMeta->yStride;
-            x2d_cfg.lay[0].v_stride = yuvMeta->vStride;
-
-            /* src data format */
-            x2d_cfg.lay[0].format = X2D_INFORMAT_YUV420SP;
-        } else {
-            ALOGE("%s: preview format %d not support",__FUNCTION__, yuvMeta->format);
-            return;
-        }
-
-        /* src rotation degree */
-        x2d_cfg.lay[0].transform = X2D_ROTATE_0;
-
-        /* src input geometry && output geometry */
-        x2d_cfg.lay[0].in_width =  yuvMeta->width;
-        x2d_cfg.lay[0].in_height = yuvMeta->height;
-        x2d_cfg.lay[0].out_width = dst_handle->iWidth;
-        x2d_cfg.lay[0].out_height = dst_handle->iHeight;
-        x2d_cfg.lay[0].out_w_offset = 0;
-        x2d_cfg.lay[0].out_h_offset = 0;
-        x2d_cfg.lay[0].mask_en = 0;
-        x2d_cfg.lay[0].msk_val = 0xffffffff;
-        x2d_cfg.lay[0].glb_alpha_en = 1;
-        x2d_cfg.lay[0].global_alpha_val = 0xff;
-        x2d_cfg.lay[0].preRGB_en = 1;
-
-        /* src scale ratio set */
-        float v_scale, h_scale;
-        switch (x2d_cfg.lay[0].transform) {
-        case X2D_H_MIRROR:
-        case X2D_V_MIRROR:
-        case X2D_ROTATE_0:
-        case X2D_ROTATE_180:
-            h_scale = (float)x2d_cfg.lay[0].in_width / (float)x2d_cfg.lay[0].out_width;
-            v_scale = (float)x2d_cfg.lay[0].in_height / (float)x2d_cfg.lay[0].out_height;
-            x2d_cfg.lay[0].h_scale_ratio = (int)(h_scale * X2D_SCALE_FACTOR);
-            x2d_cfg.lay[0].v_scale_ratio = (int)(v_scale * X2D_SCALE_FACTOR);
-            break;
-        case X2D_ROTATE_90:
-        case X2D_ROTATE_270:
-            h_scale = (float)x2d_cfg.lay[0].in_width / (float)x2d_cfg.lay[0].out_height;
-            v_scale = (float)x2d_cfg.lay[0].in_height / (float)x2d_cfg.lay[0].out_width;
-            x2d_cfg.lay[0].h_scale_ratio = (int)(h_scale * X2D_SCALE_FACTOR);
-            x2d_cfg.lay[0].v_scale_ratio = (int)(v_scale * X2D_SCALE_FACTOR);
-            break;
-        default:
-            dmmu_unmap_memory((uint8_t*)dst_buf,map_size);
-            ALOGE("%s %s %d:undefined rotation degree!!!!", __FILE__, __FUNCTION__, __LINE__);
-            return;
-        }
-
-        /* ioctl set configs */
-        ret = ioctl(x2d_fd, IOCTL_X2D_SET_CONFIG, &x2d_cfg);
-        if (ret < 0) {
-            dmmu_unmap_memory((uint8_t*)dst_buf,map_size);
-            ALOGE("%s %s %d: IOCTL_X2D_SET_CONFIG failed", __FILE__, __FUNCTION__, __LINE__);
-            return ;
-        }
-
-        /* ioctl start compose */
-        ret = ioctl(x2d_fd, IOCTL_X2D_START_COMPOSE);
-        if (ret < 0) {
-            dmmu_unmap_memory((uint8_t*)dst_buf,map_size);
-            ALOGE("%s %s %d: IOCTL_X2D_START_COMPOSE failed", __FILE__, __FUNCTION__, __LINE__);
-            return ;
-        }
-        dmmu_unmap_memory((uint8_t*)dst_buf,map_size);
-    }
-
     void CameraHal1::ipu_convert_dataformat(CameraYUVMeta* yuvMeta,
                                             uint8_t* dst_buf, buffer_handle_t *buffer) {
 
@@ -2539,25 +2392,6 @@ namespace android{
         mipu = NULL;
         ipu_open_status = false;
         init_ipu_first = true;
-    }
-
-    void CameraHal1::open_x2d_dev(void) {
-
-        x2d_fd = open (X2D_NAME, O_RDWR);
-        if (x2d_fd < 0) {
-            ALOGE("%s: open %s error, %s",
-                  __FUNCTION__, X2D_NAME, strerror(errno));
-        }
-    }
-
-    void CameraHal1::close_x2d_dev(void) {
-
-        AutoMutex lock(mlock);
-
-        if (x2d_fd > 0) {
-            close(x2d_fd);
-            x2d_fd = -1;
-        }
     }
 
     void CameraHal1::dump_data(bool isdump) {

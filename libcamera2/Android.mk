@@ -11,7 +11,6 @@ endif
 
 LOCAL_SRC_FILES:= \
 	SensorListener.cpp \
-	CameraCIMDevice.cpp \
 	CameraV4L2Device.cpp \
 	CameraCompressor.cpp \
 	CameraColorConvert.cpp \
@@ -72,7 +71,6 @@ endif
 
 LOCAL_CFLAGS += \
 	-Wno-non-virtual-dtor \
-	-DCIM_CAMERA \
 	-DCAMERA_INFO_MODULE='"$(PRODUCT_MODEL)"' \
 	-DCAMERA_INFO_MANUFACTURER='"$(PRODUCT_MANUFACTURER)"'
 
@@ -134,12 +132,6 @@ LOCAL_SHARED_LIBRARIES += \
 
 LOCAL_SRC_FILES += \
 	CameraCompressorHW.cpp
-endif
-
-#config covert yuv to rgb
-ifeq ($(COVERT_WITH_SOFT), true)
-LOCAL_CFLAGS += \
-	-DSOFT_CONVERT
 endif
 
 #camera recording use memcpy config

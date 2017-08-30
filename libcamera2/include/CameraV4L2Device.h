@@ -183,10 +183,6 @@ namespace android {
         void setDeviceCount(int num);
         void update_device_name(const char* deviceName, int len);
 
-        bool usePmem(void) {
-            return false;
-        }
-
         bool useIon(void) {
             return preview_use_ion;
         }

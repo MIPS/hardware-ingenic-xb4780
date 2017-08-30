@@ -19,7 +19,6 @@
 #include <sys/time.h>
 #include <sys/mman.h>
 #include <linux/videodev2.h>
-#include <linux/android_pmem.h>
 #include <utils/Timers.h>
 #include <utils/Log.h>
 #include <utils/Errors.h>
@@ -52,9 +51,6 @@
 #endif
 #include "config.h"
 #include "hal_public.h"
-#include "hwcomposer.h"
-
-#define PMEMDEVICE "/dev/pmem_camera"
 
 #define ION_BUFFER_SIZE 1024 * 1024 * 16
 
@@ -182,20 +178,20 @@ typedef struct CameraYUVMeta {
 	int32_t height;
 
     /**
-     *  if use pmem, this is y phys addr of video frame of yuv data .
+     *  if use ion, this is y phys addr of video frame of yuv data .
      */
  
 	int32_t yPhy;
 
     /**
-     *  if use pmem, this is u phys addr of video frame of yuv data .
+     *  if use ion, this is u phys addr of video frame of yuv data .
      */
  
 	int32_t uPhy;
 
 
     /**
-     *  if use pmem, this is v phys addr of video frame of yuv data .
+     *  if use ion, this is v phys addr of video frame of yuv data .
      */
  
 	int32_t vPhy;

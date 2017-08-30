@@ -117,7 +117,6 @@ namespace android {
         virtual void update_device_name(const char* deviceName, int len) = 0;
         virtual unsigned long getTlbBase(void) = 0;
         virtual void flushCache(void*,int)  = 0;
-        virtual bool usePmem(void) = 0;
         virtual bool useIon(void) = 0;
         virtual void clean_queued(void) { }
         virtual inline void setInterface(void* interface) { mInterface = interface; }

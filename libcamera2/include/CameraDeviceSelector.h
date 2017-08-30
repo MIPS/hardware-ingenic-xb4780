@@ -15,7 +15,6 @@
 #define __CAMERA_DEVICE_SELECTOR_H_
 //#define LOG_NDEBUG 0
 
-#include "CameraCIMDevice.h"
 #include "CameraV4L2Device.h"
 #include "CameraHalCommon.h"
 
@@ -39,10 +38,6 @@ namespace android {
 
             for (int i=0; i<MAX_CAMERA_DEVICES; ++i) {
                 memset(deviceName[i], 0, MAX_DEVICE_DRIVER_NAME);
-            }
-
-            if (access(CameraCIMDevice::path, R_OK|W_OK) == 0) {
-                add_device(CameraCIMDevice::getInstance(),CameraCIMDevice::path);
             }
 
             add_v4l2_devices();

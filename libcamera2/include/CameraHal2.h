@@ -17,10 +17,6 @@
 #include "CameraColorConvert.h"
 #include "CameraFaceDetect.h"
 
-//#define USE_X2D
-#define X2D_NAME "/dev/x2d"
-#define X2D_SCALE_FACTOR 512.0
-
 #define NUM_MAX_STREAM_THREAD  (5)
 #define NUM_MAX_CAMERA_BUFFERS (16)
 #define NUM_MAX_SUBSTREAM      (4)

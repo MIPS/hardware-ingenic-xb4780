@@ -18,10 +18,6 @@
 #include "CameraColorConvert.h"
 #include "CameraFaceDetect.h"
 
-//#define USE_X2D
-#define X2D_NAME "/dev/x2d"
-#define X2D_SCALE_FACTOR 512.0
-
 #define SIGNAL_RESET_PREVIEW     (SIGNAL_THREAD_COMMON_LAST<<1)
 #define SIGNAL_TAKE_PICTURE      (SIGNAL_THREAD_COMMON_LAST<<2)
 #define SIGNAL_RECORDING_START      (SIGNAL_THREAD_COMMON_LAST<<3)
@@ -88,10 +84,6 @@ namespace android {
 
         void close_ipu_dev(void);
 
-        void open_x2d_dev(void);
-
-        void close_x2d_dev(void);
-
         CameraDeviceCommon* getDevice(void) {
             return mDevice;
         }
@@ -142,9 +134,6 @@ namespace android {
              uint8_t* dst_buf, buffer_handle_t *buffer);
         status_t ipu_zoomIn_scale(uint8_t* dest, int dest_width, int dest_height,
                  uint8_t* src, int src_width, int src_height, int src_format, int stride_mul, int src_stride);
-
-        void x2d_convert_dataformat(CameraYUVMeta* yuvMeta, 
-                                    uint8_t* dst_buf, buffer_handle_t *buffer);
 
         void dump_data(bool isdump);
 
@@ -208,7 +197,6 @@ namespace android {
         struct ipu_image_info * mipu;
         bool ipu_open_status;
         bool init_ipu_first;
-        int x2d_fd;
 
         volatile bool mreceived_cmd;
         mutable Mutex cmd_lock;
@@ -401,9 +389,6 @@ namespace android {
                 if (pipe(thread_fds) == 0) {
                     mThreadControl = thread_fds[1]; //write
                     mControlFd = thread_fds[0]; //read
-#ifdef USE_X2D
-                    mCameraHal->open_x2d_dev();
-#endif
                     changed = true;
                     start = 0;
                     timeout = 3000000000LL;
