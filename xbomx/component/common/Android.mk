@@ -9,7 +9,8 @@ LOCAL_SRC_FILES:= \
 
 LOCAL_C_INCLUDES += \
 	$(TOP)/frameworks/native/include/media/hardware \
-        $(TOP)/frameworks/native/include/media/openmax \
+	$(TOP)/frameworks/native/include/media/openmax \
+	$(TOP)/frameworks/native/libs/nativewindow/include \
 	$(TOP)/hardware/ingenic/xb4780/libdmmu \
 	$(TOP)/hardware/ingenic/xb4780/libjzipu \
 	$(TOP)/hardware/ingenic/xb4780/libGPU \

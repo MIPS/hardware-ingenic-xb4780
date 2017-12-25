@@ -72,7 +72,10 @@ endif
 LOCAL_CFLAGS += \
 	-Wno-non-virtual-dtor \
 	-DCAMERA_INFO_MODULE='"$(PRODUCT_MODEL)"' \
-	-DCAMERA_INFO_MANUFACTURER='"$(PRODUCT_MANUFACTURER)"'
+	-DCAMERA_INFO_MANUFACTURER='"$(PRODUCT_MANUFACTURER)"' \
+	-g0 \
+	-fno-integrated-as \
+	-Wa,-mmxu \
 
 LOCAL_CPPFLAGS := -std=c++11 -Wno-tautological-pointer-compare -Wno-c++11-narrowing
 

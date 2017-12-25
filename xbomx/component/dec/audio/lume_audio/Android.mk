@@ -28,8 +28,10 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_CFLAGS := \
         $(STAGEFRIGHT_FLAGS) \
-	-DOSCL_UNUSED_ARG=
-
+	-DOSCL_UNUSED_ARG= \
+	-g0 \
+	-fno-integrated-as \
+	-Wa,-mmxu
 
 LOCAL_MODULE := libstagefright_alume_codec
 

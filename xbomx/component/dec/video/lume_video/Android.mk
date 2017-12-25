@@ -27,7 +27,7 @@ LOCAL_C_INCLUDES := \
 		$(LOCAL_PATH)/../include
 
 LOCAL_CFLAGS := \
-        -DUSE_IPU_THROUGH_MODE $(XBOMX_FLAGS)
+        -DUSE_IPU_THROUGH_MODE $(XBOMX_FLAGS) -g0 -fno-integrated-as -Wa,-mmxu
 
 LOCAL_MODULE_TAGS := optional
 
