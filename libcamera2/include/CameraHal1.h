@@ -202,7 +202,6 @@ namespace android {
         mutable Mutex cmd_lock;
         Condition mreceivedCmdCondition;
 
-        sp<SensorListener> mSensorListener;
     private:
         bool thread_body(void);
         void postFrameForPreview(void);

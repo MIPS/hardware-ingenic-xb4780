@@ -10,7 +10,6 @@ LOCAL_CFLAGS += \
 endif
 
 LOCAL_SRC_FILES:= \
-	SensorListener.cpp \
 	CameraV4L2Device.cpp \
 	CameraCompressor.cpp \
 	CameraColorConvert.cpp \
@@ -43,7 +42,6 @@ LOCAL_C_INCLUDES += \
 
 LOCAL_SHARED_LIBRARIES:= \
 	libui \
-	libsensor \
 	libskia \
 	libandroid_runtime \
 	libandroid \

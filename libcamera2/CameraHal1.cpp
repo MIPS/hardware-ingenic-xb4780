@@ -79,7 +79,6 @@ namespace android{
          ipu_open_status(false),
          init_ipu_first(false),
          mreceived_cmd(false),
-         mSensorListener(NULL),
          mWorkerThread(NULL),
          mFocusThread(NULL) {
 
@@ -310,19 +309,6 @@ namespace android{
     status_t CameraHal1::startPreview() {
 
         status_t res = NO_ERROR;
-
-        // register for sensor events
-        if(mSensorListener == NULL) {
-            mSensorListener = new SensorListener();
-            if (mSensorListener.get()) {
-                if (mSensorListener->initialize() == NO_ERROR) {
-                    mSensorListener->enableSensor(SensorListener::SENSOR_ORIENTATION);
-                } else {
-                    mSensorListener.clear();
-                    mSensorListener = NULL;
-                }
-            }
-        }
 
         AutoMutex lock(mlock);
         open_ipu_dev();
@@ -976,12 +962,6 @@ namespace android{
             mHal1SignalRecordingVideo = NULL;
         }
 
-        if (mSensorListener != NULL && mSensorListener.get()) {
-            mSensorListener->disableSensor(SensorListener::SENSOR_ORIENTATION);
-            mSensorListener.clear();
-            mSensorListener = NULL;
-        }
-
         mDevice->disConnectDevice();
         mModuleOpened = false;
 
@@ -1501,19 +1481,6 @@ namespace android{
                 }
             }
 
-            //modify for weixin video chat mirror, rotation src data
-            int rot = 0;
-            if (mirror && ccc ) {
-                rot = mSensorListener->getOrientationCompensation();
-                // if (rot == 90 || rot == 270) {
-                //     ccc->yuyv_upturn(src,srcWidth, srcHeight);
-                // } else if (rot == 0 || rot == 180) {
-                //     ccc->yuyv_mirror(src, srcWidth, srcHeight);
-                // }
-            }
-
-            ALOGV("preview size:%dx%d, raw size:%dx%d, dest format:0x%x, src fromat:0x%x, rot: %d",
-                  cwidth, cheight, mCurrentFrame->width, mCurrentFrame->height,cFormat, mCurrentFrame->format, rot);
             if ((mPreviewHeap != NULL) && (mPreviewHeap->data != NULL)) {
                 void* dest = (void*)((int)(mPreviewHeap->data) + mPreviewFrameSize*mPreviewIndex);
                 switch(cFormat) {

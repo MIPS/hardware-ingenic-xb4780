@@ -19,8 +19,6 @@
 #include "CameraCompressorHW.h"
 #endif
 
-#include "SensorListener.h"
-
 namespace android {
 
     class CameraHalCommon : public RefBase
