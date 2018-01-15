@@ -52,7 +52,6 @@ LOCAL_SHARED_LIBRARIES:= \
 	libexif \
 	liblog \
 	libc++ \
-	libmedia \
 	libdmmu \
 	libdl \
 	libjzipu \

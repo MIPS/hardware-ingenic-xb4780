@@ -13,7 +13,6 @@
 #define LOG_TAG "CameraHalSelect"
 //#define LOG_NDEBUG 0
 #include "CameraHalSelector.h"
-#include <media/MediaProfiles.h>
 
 namespace android {
     CameraHalSelector::CameraHalSelector()
@@ -25,13 +24,11 @@ namespace android {
          mHal(NULL) {
 
         char prop[16];
-        int media_profile_camera_num = 0;
 
         /**
            start camera device
         */
 
-        media_profile_camera_num = get_profile_number_cameras();
         device_selector = new CameraDeviceSelector();
 
         if (device_selector == NULL) {
@@ -49,10 +46,6 @@ namespace android {
         if (mCameraNum == 0) {
             ALOGE("real camera number == 0");
             return;
-        }
-
-        if (media_profile_camera_num != mCameraNum) {
-            ALOGE("media profile camera num = %d, real number = %d", media_profile_camera_num, mCameraNum);
         }
 
         ALOGV("%s: have %d number camera", __FUNCTION__,mCameraNum);
@@ -116,19 +109,6 @@ namespace android {
 
     int CameraHalSelector::get_number_of_cameras(void) {
         int camera_num = gCameraHalSelector.getNumberCamera();
-
-        return camera_num;
-    }
-
-    int CameraHalSelector::get_profile_number_cameras() {
-
-        int camera_num = 0;
-        int i = 0;
-
-        MediaProfiles* profile = MediaProfiles::getInstance();
-
-        while (profile->hasCamcorderProfile(i++,CAMCORDER_QUALITY_HIGH))
-            camera_num++;
 
         return camera_num;
     }

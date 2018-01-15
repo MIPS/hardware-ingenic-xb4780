@@ -32,8 +32,6 @@ namespace android {
         virtual ~CameraHalSelector();
 
     public:
-        virtual int get_profile_number_cameras(void);
-
         int getHalVersion() {
             return mversion;
         }

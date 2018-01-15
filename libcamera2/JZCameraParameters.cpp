@@ -14,7 +14,6 @@
 
 #include <ctype.h>
 #include "JZCameraParameters.h"
-#include <media/MediaProfiles.h>
 
 namespace android {
 
@@ -1054,27 +1053,13 @@ namespace android {
 
         char tmp_preview_for_video[20];
         memset(tmp_preview_for_video,'\0',20);
-        MediaProfiles* media_profile = MediaProfiles::getInstance();
-        int preferred_width = media_profile->getCamcorderProfileParamByName("vid.width",
-                              mCameraId,CAMCORDER_QUALITY_LOW);
-        int preferred_height = media_profile->getCamcorderProfileParamByName("vid.height",
-                              mCameraId,CAMCORDER_QUALITY_LOW);
-        mParameters.setVideoSize(preferred_width,preferred_height);
-        snprintf(tmp_preview_for_video, 20,"%dx%d",preferred_width, preferred_height);
-        //mParameters.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO,
-        //     tmp_preview_for_video);
 
         ALOGV("(%d) init preview size: %s", mCameraId, "640x480");
         ALOGV("(%d) init picture size: %s", mCameraId, "640x480");
         ALOGV("(%d) init video size: %s", mCameraId, tmp_preview_for_video);
         ALOGV("(%d) init preferred preview size: %s", mCameraId,tmp_preview_for_video);
 
-        if (((int)maxcapture_width != preferred_width)
-            && ((int)maxcapture_height != preferred_height)) {
-            mParameters.set(CameraParameters::KEY_VIDEO_SNAPSHOT_SUPPORTED,"false");
-        } else {
-            mParameters.set(CameraParameters::KEY_VIDEO_SNAPSHOT_SUPPORTED,"true");
-        }
+        mParameters.set(CameraParameters::KEY_VIDEO_SNAPSHOT_SUPPORTED,"false");
 
         int tmp_format = 0;
         setPreviewFormat((int*)(&tmp_format), mParameters.getPreviewFormat());

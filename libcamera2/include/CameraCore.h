@@ -36,7 +36,6 @@
 #include <ui/PixelFormat.h>
 #include <ui/Rect.h>
 #include <ui/GraphicBufferMapper.h>
-#include <media/stagefright/foundation/ADebug.h>
 
 #include <hardware/camera.h>
 #ifdef CAMERA_VERSION2
