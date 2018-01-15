@@ -634,10 +634,6 @@ namespace android {
             ret = exifTable->insertElement(TAG_MAKE,CAMERA_INFO_MANUFACTURER);
         }
 
-        if (NO_ERROR == ret) {
-            ret = exifTable->insertElement(TAG_SOFTWARE,SOFTWARE_VALUE);
-        }
-
         valStr = mParameters.get(CameraParameters::KEY_FOCAL_LENGTH);
         if (NULL != valStr && NO_ERROR == ret) {
             unsigned int focalNum = 0;
@@ -881,14 +877,6 @@ namespace android {
 
         mParameters.setFloat(CameraParameters::KEY_FOCAL_LENGTH, 0.55);
         mParameters.set(CameraParameters::KEY_PREVIEW_FPS_RANGE,"10000,30000");
-
-        if (facing == CAMERA_FACING_BACK) {
-            mParameters.set(CameraParameters::KEY_MAX_NUM_DETECTED_FACES_HW,atoi(CAMERA_FACEDETECT));
-            mParameters.set(CameraParameters::KEY_MAX_NUM_DETECTED_FACES_SW,0);
-        } else if (facing == CAMERA_FACING_FRONT) {
-            mParameters.set(CameraParameters::KEY_MAX_NUM_DETECTED_FACES_HW,atoi(CAMERA_FACEDETECT));
-            mParameters.set(CameraParameters::KEY_MAX_NUM_DETECTED_FACES_SW,0);
-        }
 
         mParameters.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FRAME_RATES,"15,20,25,30");
         mParameters.setPreviewFrameRate(30);

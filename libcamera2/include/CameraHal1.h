@@ -16,11 +16,12 @@
 #include <ctype.h>
 #include "CameraHalCommon.h"
 #include "CameraColorConvert.h"
-#include "CameraFaceDetect.h"
 
 #define SIGNAL_RESET_PREVIEW     (SIGNAL_THREAD_COMMON_LAST<<1)
 #define SIGNAL_TAKE_PICTURE      (SIGNAL_THREAD_COMMON_LAST<<2)
 #define SIGNAL_RECORDING_START      (SIGNAL_THREAD_COMMON_LAST<<3)
+
+#define MAX(x, y) (x)>(y) ? (x) : (y)
 
 namespace android {
 
@@ -189,11 +190,9 @@ namespace android {
         nsecs_t mCurFrameTimestamp;
         nsecs_t mLastFrameTimestamp;
         CameraYUVMeta* mCurrentFrame;
-        int mFaceCount;
         int mzoomVal;
         int mzoomRadio;
 
-        bool isSoftFaceDetectStart;
         struct ipu_image_info * mipu;
         bool ipu_open_status;
         bool init_ipu_first;
@@ -211,8 +210,6 @@ namespace android {
         void hardCompressJpeg(void);
         status_t fillCurrentFrame(uint8_t* img,buffer_handle_t* buffer);
         status_t convertCurrentFrameToJpeg(camera_memory_t** jpeg_buff);
-        status_t softFaceDetectStart(int32_t detect_type);
-        status_t softFaceDetectStop(void);
         status_t do_takePictureWithPreview(void);
         status_t do_takePicture(void);
         status_t completeTakePicture(void);

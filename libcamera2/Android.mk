@@ -13,7 +13,6 @@ LOCAL_SRC_FILES:= \
 	CameraV4L2Device.cpp \
 	CameraCompressor.cpp \
 	CameraColorConvert.cpp \
-	CameraFaceDetect.cpp \
 	CameraHalSelector.cpp \
 	CameraHWModule.cpp
 
@@ -54,7 +53,6 @@ LOCAL_SHARED_LIBRARIES:= \
 	liblog \
 	libc++ \
 	libmedia \
-	libFFTEm \
 	libdmmu \
 	libdl \
 	libjzipu \
@@ -86,8 +84,7 @@ LOCAL_SRC_FILES += \
 	JZCameraParameters.cpp \
 
 LOCAL_CFLAGS += \
-	-DCAMERA_VERSION1 \
-	-DSOFTWARE_VALUE=\"Android4.1\"
+	-DCAMERA_VERSION1
 endif
 
 ifeq ($(CAMERA_VERSION), 2)
@@ -102,25 +99,7 @@ LOCAL_SHARED_LIBRARIES += \
 	libcameraservice
 
 LOCAL_CFLAGS += \
-	-DCAMERA_VERSION2 \
-	-DSOFTWARE_VALUE=\"Android4.2\"
-endif
-
-#camera face detect config
-ifeq ($(FRONT_CAMERA_FACEDETECT),true)
-LOCAL_CFLAGS += \
-	-DCAMERA_FACEDETECT=\"3\"
-else
-LOCAL_CFLAGS += \
-	-DCAMERA_FACEDETECT=\"0\"
-endif
-
-ifeq ($(BACK_CAMERA_FACEDETECT),true)
-LOCAL_CFLAGS += \
-	-DCAMERA_FACEDETECT=\"3\"
-else
-LOCAL_CFLAGS += \
-	-DCAMERA_FACEDETECT=\"0\"
+	-DCAMERA_VERSION2
 endif
 
 #camera recording use memcpy config

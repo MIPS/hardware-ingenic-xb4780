@@ -15,7 +15,6 @@
 #define LOST_FRAME_NUM 1
 
 #include "CameraHalSelector.h"
-#include "CameraFaceDetect.h"
 #include "iStride.h"
 
 #ifndef PIXEL_FORMAT_YV16
@@ -71,10 +70,8 @@ namespace android{
          mPreviewWinHeight(0),
          mCurFrameTimestamp(0),
          mCurrentFrame(NULL),
-         mFaceCount(0),
          mzoomVal(0),
          mzoomRadio(100),
-         isSoftFaceDetectStart(false),
          mipu(NULL),
          ipu_open_status(false),
          init_ipu_first(false),
@@ -136,8 +133,6 @@ namespace android{
         mFocusThread.clear();
         mFocusThread = NULL;
         mModuleOpened = false;
-        // Just call the destructor, don't release the instance
-        CameraFaceDetect::getInstance()->~CameraFaceDetect();
     }
 
     void CameraHal1::update_device(CameraDeviceCommon* device) {
@@ -387,7 +382,6 @@ namespace android{
         }
 
         AutoMutex lock(mlock);
-        isSoftFaceDetectStart = false;
         if ((ret == NO_ERROR) && mPreviewEnabled) {
             mPreviewEnabled = false;
             mDevice->freeStream(PREVIEW_BUFFER);
@@ -546,7 +540,6 @@ namespace android{
     status_t CameraHal1::setAutoFocus() {
         status_t ret = NO_ERROR;
         AutoMutex lock(mlock);
-        mDevice->sendCommand(PAUSE_FACE_DETECT);
         if (getAutoFocusThread() != NULL) {
             getAutoFocusThread()->startThread();
         }
@@ -817,14 +810,6 @@ namespace android{
                 if (mMesgEnabled & CAMERA_MSG_ZOOM) {
                     mnotify_cb(CAMERA_MSG_ZOOM,mzoomVal,0,mcamera_interface);
                 }
-                break;
-            case CAMERA_CMD_START_FACE_DETECTION:
-                res = softFaceDetectStart(arg1);
-                // res = mDevice->sendCommand(START_FACE_DETECT);
-                break;
-            case CAMERA_CMD_STOP_FACE_DETECTION:
-                res = softFaceDetectStop();
-                //  res = mDevice->sendCommand(STOP_FACE_DETECT);
                 break;
             default:
                 break;
@@ -1361,31 +1346,6 @@ namespace android{
             goto preview_win_format_error;
         }
 
-        if (isSoftFaceDetectStart == true && ccc) {
-            if (mPreviewWinFmt == HAL_PIXEL_FORMAT_RGB_565) {
-                mFaceCount = CameraFaceDetect::getInstance()->detect((uint16_t*)dst);
-            } else {
-                camera_memory_t* rgb565 = mget_memory(-1,
-                                srcWidth * srcHeight * 2, 1,
-                                mcamera_interface);
-                if ((rgb565 != NULL) && (rgb565->data != NULL)) {
-                    if (mCurrentFrame->format == HAL_PIXEL_FORMAT_YCbCr_422_I) {
-                        ccc->yuyv_to_rgb565(src, srcStride, (uint8_t*)(rgb565->data),
-                                            mPreviewWinWidth*2, srcWidth, srcHeight);
-                        mFaceCount = CameraFaceDetect::getInstance()->detect((uint16_t*)rgb565->data);
-                    } else if (mCurrentFrame->format == HAL_PIXEL_FORMAT_JZ_YUV_420_B) {
-                        if (ipu_open_status)
-                            ipu_convert_dataformat(mCurrentFrame,(uint8_t*)(rgb565->data), buffer);
-                        mFaceCount = CameraFaceDetect::getInstance()->detect((uint16_t*)rgb565->data);
-                    } else if (mCurrentFrame->format == HAL_PIXEL_FORMAT_JZ_YUV_420_P) {
-                        ccc->yuv420p_to_rgb565(src, (uint8_t*)(rgb565->data),srcWidth, srcHeight);
-                        mFaceCount = CameraFaceDetect::getInstance()->detect((uint16_t*)rgb565->data);
-                    }
-                    rgb565->release(rgb565);
-                    rgb565 = NULL;
-                }
-            }
-        }
     preview_win_format_error:
         if (tmp_mem != NULL) {
             tmp_mem->release(tmp_mem);
@@ -1611,87 +1571,6 @@ namespace android{
             }
         }
 
-        if ((mMesgEnabled & CAMERA_MSG_PREVIEW_METADATA) && (isSoftFaceDetectStart == true)) {
-            Rect **faceRect = NULL;
-            camera_frame_metadata_t frame_metadata;
-            int maxFaces = mJzParameters->getCameraParameters()
-                .getInt(CameraParameters::KEY_MAX_NUM_DETECTED_FACES_HW);
-            status_t ret = NO_ERROR;
-            float lx = 0, ly = 0, rx = 0, ry = 0;
-            float fl = 0, fr = 0, ft = 0, fb = 0;
-
-            if (mFaceCount > 0) {
-                if (mFaceCount > maxFaces)
-                    mFaceCount = maxFaces;
-                faceRect = new Rect*[mFaceCount];
-                frame_metadata.faces = (camera_face_t*)calloc(mFaceCount, sizeof(camera_face_t));
-                frame_metadata.number_of_faces = mFaceCount;
-                for (int i = 0; i < mFaceCount; ++i) {
-                    faceRect[i] = new Rect();
-                    CameraFaceDetect::getInstance()->get_face(faceRect[i],i);
-                    fl = faceRect[i]->left;
-                    fr = faceRect[i]->right;
-                    ft = faceRect[i]->top;
-                    fb = faceRect[i]->bottom;
-
-                    if (fl >= -1000 && fl <= 1000) {
-                        ;
-                    } else {
-                        fl = fl - 1000;
-                        fr = fr - 1000;
-                        ft = ft - 1000;
-                        fb = fb - 1000;
-                    }
-
-                    frame_metadata.faces[i].rect[0] = (int32_t)fl;
-                    frame_metadata.faces[i].rect[1] = (int32_t)fr;
-                    frame_metadata.faces[i].rect[2] = (int32_t)ft;
-                    frame_metadata.faces[i].rect[3] = (int32_t)fb;
-
-                    frame_metadata.faces[i].id = i;
-                    frame_metadata.faces[i].score = CameraFaceDetect::getInstance()->get_confidence();
-                    frame_metadata.faces[i].mouth[0] = -2000; frame_metadata.faces[i].mouth[1] = -2000;
-                    lx = CameraFaceDetect::getInstance()->getLeftEyeX();
-                    ly = CameraFaceDetect::getInstance()->getLeftEyeY();
-                    rx = CameraFaceDetect::getInstance()->getRightEyeX();
-                    ry = CameraFaceDetect::getInstance()->getRightEyeY();
-                    if ((lx >= -1000 && lx <= 1000)) {
-                        ;
-                    } else {
-                        lx = lx - 1000;
-                        ly = ly - 1000;
-                        rx = rx - 1000;
-                        ry = ry - 1000;
-                    }
-                    frame_metadata.faces[i].left_eye[0] = (int32_t)lx;
-                    frame_metadata.faces[i].left_eye[1] = (int32_t)ly;
-                    frame_metadata.faces[i].right_eye[0] = (int32_t)rx;
-                    frame_metadata.faces[i].right_eye[1] = (int32_t)ry;
-                }
-
-                camera_memory_t *tmpBuffer = mget_memory(-1, 1, 1,
-                                mcamera_interface);
-                mdata_cb(CAMERA_MSG_PREVIEW_METADATA, tmpBuffer, 0, &frame_metadata,mcamera_interface);
-
-                if ( NULL != tmpBuffer ) {
-                    tmpBuffer->release(tmpBuffer);
-                    tmpBuffer = NULL;
-                }
-
-                for (int i = 0; i < mFaceCount; ++i) {
-                    delete faceRect[i];
-                    faceRect[i] = NULL;
-                }
-                delete [] faceRect;
-                faceRect = NULL;
-                   
-                if (frame_metadata.faces != NULL) {
-                    free(frame_metadata.faces);
-                    frame_metadata.faces = NULL;
-                }
-            }
-        }
-
         if (mTakingPicture) {
 
             if (mJzParameters->is_picture_size_change()
@@ -1904,58 +1783,6 @@ namespace android{
             tmp_buf = NULL;
         }
         return ret;
-    }
-
-
-    status_t CameraHal1::softFaceDetectStart(int32_t detect_type) {
-
-        int w = mRawPreviewWidth;
-        int h = mRawPreviewHeight;
-        int maxFaces = 0;
-        status_t res = NO_ERROR;
-
-        switch(detect_type)
-            {
-            case CAMERA_FACE_DETECTION_HW:
-                ALOGE("start hardware face detect");
-                maxFaces = mJzParameters->getCameraParameters()
-                    .getInt(CameraParameters::KEY_MAX_NUM_DETECTED_FACES_HW);
-                goto hard_detect_method;
-                break;
-            case CAMERA_FACE_DETECTION_SW:
-                ALOGE("start Software face detection");
-                maxFaces = mJzParameters->getCameraParameters()
-                    .getInt(CameraParameters::KEY_MAX_NUM_DETECTED_FACES_SW);
-                goto soft_detect_method;
-                break;
-            }
-
-    hard_detect_method:
-    soft_detect_method:
-
-        if (maxFaces == 0) {
-            isSoftFaceDetectStart = false;
-            return BAD_VALUE;
-        }
-
-        ALOGV("%s: max Face = %d", __FUNCTION__,maxFaces);
-
-        res = CameraFaceDetect::getInstance()->initialize(w, h, maxFaces);
-        if (res == NO_ERROR) {
-            isSoftFaceDetectStart = true;
-        } else {
-            isSoftFaceDetectStart = false;
-        }
-
-        return res;
-    }
-
-    status_t CameraHal1::softFaceDetectStop(void) {
-        if (isSoftFaceDetectStart) {
-            isSoftFaceDetectStart = false;
-            CameraFaceDetect::getInstance()->deInitialize();
-        }
-        return NO_ERROR;
     }
 
     void CameraHal1::ipu_convert_dataformat(CameraYUVMeta* yuvMeta,
