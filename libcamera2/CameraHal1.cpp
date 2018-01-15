@@ -1812,60 +1812,7 @@ namespace android{
             mListCaptureHeap.erase(mListCaptureHeap.begin());
         }
 
-#if CAMERA_SUPPORT_VIDEOSNAPSHORT
-        CameraCompressorHW ccHW;
-        compress_params_hw_t hw_cinfo;
-        memset(&hw_cinfo, 0, sizeof(compress_params_hw_t));
-        hw_cinfo.pictureYUV420_y = (uint8_t*)(captureHeap->data);
-        hw_cinfo.pictureYUV420_c = (uint8_t*)((uint8_t*)captureHeap->data
-                                              + (mCurrentFrame->width*mCurrentFrame->height));
-        hw_cinfo.pictureWidth = mCurrentFrame->width;
-        hw_cinfo.pictureHeight = mCurrentFrame->height;
-        hw_cinfo.pictureQuality = picQuality;
-        hw_cinfo.thumbnailWidth = th_width;
-        hw_cinfo.thumbnailHeight = th_height;
-        hw_cinfo.thumbnailQuality = thumQuality;
-        hw_cinfo.format = HAL_PIXEL_FORMAT_JZ_YUV_420_B;
-        hw_cinfo.jpeg_out = (unsigned char*)(jpeg_buff->data);
-        hw_cinfo.jpeg_size = &jpeg_size;
-        hw_cinfo.th_jpeg_out = (jpeg_tn_buff==NULL) ? NULL : ((unsigned char*)(jpeg_tn_buff->data));
-        hw_cinfo.th_jpeg_size = &thumb_size;
-        hw_cinfo.tlb_addr = mDevice->getTlbBase();
-        hw_cinfo.requiredMem = mget_memory;
-
-        ccHW.setPrameters(&hw_cinfo);
-        ccHW.hw_compress_to_jpeg();
-
-        ExifElementsTable* exif = new ExifElementsTable();
-        if (NULL != exif) {
-            mJzParameters->setUpEXIF(exif);
-            exif->insertExifToJpeg((unsigned char*)(jpeg_buff->data),jpeg_size);
-            if (NULL != jpeg_tn_buff
-                && jpeg_tn_buff->data != NULL) {
-                if (th_width*th_height >= mCurrentFrame->width*mCurrentFrame->height) {
-                    exif->insertExifThumbnailImage((const char*)(jpeg_buff->data), (int)jpeg_size);
-                } else {
-                    ccHW.rgb565_to_jpeg((uint8_t*)jpeg_tn_buff->data,
-                                        &thumb_size,(uint8_t*)(captureHeap->data),
-                                        th_width, th_height,thumQuality);
-                    exif->insertExifThumbnailImage((const char*)(jpeg_tn_buff->data), (int)thumb_size);
-                }
-            }
-            Section_t* exif_section = NULL;
-            exif_section = FindSection(M_EXIF);
-            if (NULL != exif_section) {
-                jpegMem = mget_memory(-1, (jpeg_size + exif_section->Size), 1, mcamera_interface);
-                if ((NULL != jpegMem) && (jpegMem->data != NULL)) {
-                    exif->saveJpeg((unsigned char*)(jpegMem->data),(jpeg_size + exif_section->Size));
-                    mdata_cb(CAMERA_MSG_COMPRESSED_IMAGE, jpegMem, 0, NULL, mcamera_interface);
-                    jpegMem->release(jpegMem);
-                    jpegMem = NULL;
-                }
-            }
-        }
-#else
         mdata_cb(CAMERA_MSG_COMPRESSED_IMAGE, captureHeap, 0, NULL, mcamera_interface);
-#endif
 
         if (jpeg_buff != NULL) {
             jpeg_buff->release(jpeg_buff);

@@ -123,19 +123,6 @@ LOCAL_CFLAGS += \
 	-DCAMERA_FACEDETECT=\"0\"
 endif
 
-# camera video snap short config
-ifeq ($(CAMERA_SUPPORT_VIDEOSNAPSHORT), true)
-LOCAL_CFLAGS += \
-	-DCAMERA_SUPPORT_VIDEOSNAPSHORT
-#	-DCOMPRESS_JPEG_USE_HW
-
-LOCAL_SHARED_LIBRARIES += \
-	libstagefright_vlume 
-
-LOCAL_SRC_FILES += \
-	CameraCompressorHW.cpp
-endif
-
 #camera recording use memcpy config
 ifeq ($(CAMERA_COPY_MODE_RECORDING), true)
 LOCAL_CFLAGS += \
