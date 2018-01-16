@@ -13,7 +13,11 @@
 #ifndef ANDROID_HARDWARE_CAMERAJZPARAMETERS_HARDWARE_H
 #define ANDROID_HARDWARE_CAMERAJZPARAMETERS_HARDWARE_H
 
-#include <camera/CameraParameters.h>
+#include <CameraParameters.h>
+
+using ::android::hardware::camera::common::V1_0::helper::CameraParameters;
+using ::android::hardware::camera::common::V1_0::helper::Size;
+
 #include "CameraDeviceCommon.h"
 
 #define MAX_FACE 3

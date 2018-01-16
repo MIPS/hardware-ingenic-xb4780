@@ -40,6 +40,8 @@ LOCAL_C_INCLUDES += \
 	hardware/ingenic/xb4780/include/media \
 	kernel/drivers/video
 
+LOCAL_STATIC_LIBRARIES := android.hardware.camera.common@1.0-helper
+
 LOCAL_SHARED_LIBRARIES:= \
 	libui \
 	libskia \
@@ -50,7 +52,6 @@ LOCAL_SHARED_LIBRARIES:= \
 	libutils \
 	libexif \
 	liblog \
-	libcamera_client \
 	libc++ \
 	libmedia \
 	libFFTEm \
