@@ -75,37 +75,10 @@ LOCAL_CFLAGS += \
 
 LOCAL_CPPFLAGS := -std=c++11 -Wno-tautological-pointer-compare -Wno-c++11-narrowing
 
-#camera version config
-ifeq ($(CAMERA_VERSION), 1)
 LOCAL_SRC_FILES += \
 	WorkQueue.cpp \
 	CameraHal1.cpp \
 	JZCameraParameters.cpp \
-
-LOCAL_CFLAGS += \
-	-DCAMERA_VERSION1
-endif
-
-ifeq ($(CAMERA_VERSION), 2)
-LOCAL_SRC_FILES += \
-	CameraHal2.cpp \
-	JZCameraParameters2.cpp
-LOCAL_C_INCLUDES += \
-	system/media/camera/include
-
-LOCAL_SHARED_LIBRARIES += \
-	libcamera_metadata \
-	libcameraservice
-
-LOCAL_CFLAGS += \
-	-DCAMERA_VERSION2
-endif
-
-#camera recording use memcpy config
-ifeq ($(CAMERA_COPY_MODE_RECORDING), true)
-LOCAL_CFLAGS += \
-	-DCOPY_RECORDING_MODE
-endif
 
 LOCAL_MODULE_PATH := $(TARGET_OUT_VENDOR_SHARED_LIBRARIES)/hw
 

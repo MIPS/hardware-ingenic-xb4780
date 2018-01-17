@@ -24,9 +24,7 @@
 #include <utils/Errors.h>
 #include <utils/String8.h>
 #include <utils/threads.h>
-#ifdef CAMERA_VERSION1
 #include "WorkQueue.h"
-#endif
 #include <utils/List.h>
 #include <binder/IMemory.h>
 #include <binder/MemoryBase.h>
@@ -38,9 +36,7 @@
 #include <ui/GraphicBufferMapper.h>
 
 #include <hardware/camera.h>
-#ifdef CAMERA_VERSION2
-#include <hardware/camera2.h>
-#endif
+
 #undef PAGE_SIZE
 #include "dmmu.h"
 #include "android_jz_ipu.h"

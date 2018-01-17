@@ -13,14 +13,7 @@
 #ifndef __CAMERA_HAL_SELECTOR_H_
 #define __CAMERA_HAL_SELECTOR_H_
 
-#ifdef CAMERA_VERSION1
 #include "CameraHal1.h"
-#endif
-
-#ifdef CAMERA_VERSION2
-#include "CameraHal2.h"
-#endif
-
 #include "CameraDeviceSelector.h"
 
 namespace android {

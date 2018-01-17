@@ -59,20 +59,10 @@ namespace android {
         for (int i = 0; i < mCameraNum; ++i)
             mHal[i] = NULL;
 
-#ifdef CAMERA_VERSION1
         mversion = 1;
         for (int i = 0; i < mCameraNum; ++i) {
             mHal[i] = new CameraHal1(i, device_selector->getDevice());
         }
-#endif
-
-#ifdef CAMERA_VERSION2
-        mversion = 2;
-        for (int i = 0; i < mCameraNum; ++i) {
-            mHal[i] = new CameraHal2(i, device_selector->getDevice());
-        }
-#endif
-
     }
 
     CameraHalSelector::~CameraHalSelector() {

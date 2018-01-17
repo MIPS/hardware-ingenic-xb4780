@@ -13,12 +13,8 @@
 #ifndef ANDROID_HARDWARE_CAMERAJPEG_HARDWARE_H
 #define ANDROID_HARDWARE_CAMERAJPEG_HARDWARE_H
 
-#ifdef CAMERA_VERSION1
 #include "JZCameraParameters.h"
-#endif
-#ifdef CAMERA_VERSION2
-#include "JZCameraParameters2.h"
-#endif
+
 #include <YuvToJpegEncoder.h>
 
 namespace android {
