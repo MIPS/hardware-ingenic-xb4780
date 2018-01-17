@@ -29,6 +29,7 @@ LOCAL_SRC_FILES:= \
 	makernote.c
 
 LOCAL_MODULE := libjhead
+LOCAL_VENDOR_MODULE := true
 
 LOCAL_SHARED_LIBRARIES := \
 	libcutils \
@@ -36,30 +37,3 @@ LOCAL_SHARED_LIBRARIES := \
 	liblog
 
 include $(BUILD_SHARED_LIBRARY)
-
-#########################################
-# jni part
-
-# allow jni build if java is supported, necessary for PDK
-ifneq ($(TARGET_BUILD_JAVA_SUPPORT_LEVEL),)
-
-include $(CLEAR_VARS)
-LOCAL_CFLAGS := -Wno-unused-parameter
-
-LOCAL_MODULE_TAGS := optional
-
-LOCAL_SRC_FILES:= \
-	main.c
-
-LOCAL_MODULE := libjhead_jni
-
-LOCAL_SHARED_LIBRARIES := \
-	libnativehelper \
-	libcutils \
-	libutils \
-	liblog \
-	libjhead
-
-include $(BUILD_SHARED_LIBRARY)
-
-endif # JAVA_SUPPORT
