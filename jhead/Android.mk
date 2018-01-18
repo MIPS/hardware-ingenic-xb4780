@@ -28,7 +28,7 @@ LOCAL_SRC_FILES:= \
 	jpgfile.c \
 	makernote.c
 
-LOCAL_MODULE := libjhead
+LOCAL_MODULE := libjhead.xb4780
 LOCAL_VENDOR_MODULE := true
 
 LOCAL_SHARED_LIBRARIES := \
