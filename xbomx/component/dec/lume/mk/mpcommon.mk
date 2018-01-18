@@ -21,6 +21,7 @@ MLOCAL_SRC_FILES := codec-cfg.c \
 
 LOCAL_SRC_FILES := $(addprefix $(MPTOP),$(MLOCAL_SRC_FILES)) 
 LOCAL_MODULE := libstagefright_ffmpcommon
+LOCAL_VENDOR_MODULE := true
 
 JZC_CFG := jzconfig.h
 LOCAL_CFLAGS := -DHAVE_AV_CONFIG_H -ffunction-sections -Wmissing-prototypes \
@@ -33,7 +34,8 @@ LOCAL_CFLAGS := -DHAVE_AV_CONFIG_H -ffunction-sections -Wmissing-prototypes \
 
 LOCAL_STATIC_LIBRARIES := 
 
-LOCAL_SHARED_LIBRARIES := 
+LOCAL_SHARED_LIBRARIES := \
+	libutils
 
 LOCAL_C_INCLUDES := \
 	$(LUME_PATH) \

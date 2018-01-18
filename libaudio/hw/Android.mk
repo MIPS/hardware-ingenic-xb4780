@@ -17,6 +17,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := audio.primary.xb4780
+LOCAL_VENDOR_MODULE := true
 LOCAL_MODULE_PATH := $(TARGET_OUT_VENDOR_SHARED_LIBRARIES)/hw
 LOCAL_SRC_FILES := \
 	audio_hw.c
@@ -24,7 +25,7 @@ LOCAL_C_INCLUDES += \
 	external/tinyalsa/include \
 	$(call include-path-for, audio-utils) \
 	$(call include-path-for, audio-route)
-LOCAL_SHARED_LIBRARIES := liblog libcutils libtinyalsa libaudioutils libaudioroute
+LOCAL_SHARED_LIBRARIES := liblog libcutils libhardware libtinyalsa libaudioutils libaudioroute
 LOCAL_MODULE_TAGS := optional
 
 ifeq (ci20,$(TARGET_DEVICE))

@@ -25,8 +25,10 @@ LOCAL_SHARED_LIBRARIES :=               \
         libstagefright_foundation       \
         libdl				\
 	libjzipu 			\
-	libdmmu
+	libdmmu 			\
+	libgui
 
 LOCAL_MODULE:= libOMX_Basecomponent
+LOCAL_VENDOR_MODULE := true
 
 include $(BUILD_STATIC_LIBRARY)

@@ -7,6 +7,7 @@ MLOCAL_SRC_FILES := jz47_vae_map.cpp libjzcommon/jzm_intp.c
 
 LOCAL_SRC_FILES := $(addprefix $(MPTOP),$(MLOCAL_SRC_FILES)) 
 LOCAL_MODULE := libstagefright_mphwapp
+LOCAL_VENDOR_MODULE := true
 
 JZC_CFG := jzconfig.h
 LOCAL_CFLAGS := $(PV_CFLAGS) -DHAVE_AV_CONFIG_H -ffunction-sections  -Wmissing-prototypes -Wundef -Wdisabled-optimization -Wno-pointer-sign -Wdeclaration-after-statement -Wall -Wno-switch -Wpointer-arith -Wredundant-decls -O2 -pipe -ffast-math -UNDEBUG -UDEBUG -fno-builtin -imacros $(JZC_CFG)
@@ -14,7 +15,8 @@ LOCAL_CFLAGS := $(PV_CFLAGS) -DHAVE_AV_CONFIG_H -ffunction-sections  -Wmissing-p
 
 LOCAL_STATIC_LIBRARIES := 
 
-LOCAL_SHARED_LIBRARIES := 
+LOCAL_SHARED_LIBRARIES := \
+	libutils
 
 LOCAL_C_INCLUDES := \
 	$(LUME_PATH)  \

@@ -8,7 +8,6 @@ LOCAL_SRC_FILES := \
 	../../../../xbdemux/LUMEDefs.cpp
 
 LOCAL_SHARED_LIBRARIES := \
-	libstagefright \
 	libstagefright_omx \
 	libstagefright_foundation \
 	libcutils	\
@@ -20,7 +19,7 @@ LOCAL_SHARED_LIBRARIES := \
 	libdmmu \
 	libhardware \
         liblog \
-        libmedia
+        libmedia_omx
 
 LOCAL_STATIC_LIBRARIES := \
 	libstagefright_vlume_codec
@@ -41,6 +40,7 @@ LOCAL_STATIC_LIBRARIES += \
 
 
 LOCAL_MODULE := libstagefright_hard_vlume
+LOCAL_VENDOR_MODULE := true
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/./include \
 	$(LOCAL_PATH)/../include \
