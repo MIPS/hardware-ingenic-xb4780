@@ -14,14 +14,25 @@ LOCAL_SRC_FILES:= \
 	CameraCompressor.cpp \
 	CameraColorConvert.cpp \
 	CameraHalSelector.cpp \
-	CameraHWModule.cpp
+	CameraHWModule.cpp \
+	skiasupport/SkStream.cpp \
+	skiasupport/SkData.cpp \
+	skiasupport/SkEventTracer.cpp \
+	skiasupport/SkString.cpp \
+	skiasupport/SkOSFile_stdio.cpp \
+	skiasupport/SkMemory_malloc.cpp \
+	skiasupport/SkUtils.cpp \
+	skiasupport/SkOSFile_posix.cpp \
+	skiasupport/SkDebug_android.cpp \
+	skiasupport/YuvToJpegEncoder.cpp \
+	skiasupport/SkJPEGWriteUtility.cpp \
 
 LOCAL_C_INCLUDES += \
 	$(LOCAL_PATH)/include \
+	$(LOCAL_PATH)/skiasupport/include/core \
+	$(LOCAL_PATH)/skiasupport/include/private \
 	external/jpeg \
 	external/jhead \
-	external/skia/include/core/ \
-	external/skia/include/images \
 	external/neven/FaceRecEm/common/src/b_FDSDK \
 	system/core/include \
 	system/media/camera/include \
@@ -43,9 +54,6 @@ LOCAL_STATIC_LIBRARIES := android.hardware.camera.common@1.0-helper
 
 LOCAL_SHARED_LIBRARIES:= \
 	libui \
-	libskia \
-	libandroid_runtime \
-	libandroid \
 	libbinder \
 	libcutils \
 	libutils \
