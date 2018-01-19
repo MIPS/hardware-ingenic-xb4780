@@ -845,9 +845,22 @@ static int out_get_presentation_position(const struct audio_stream_out *stream,
                                    uint64_t *frames, struct timespec *timestamp)
 {
     struct stream_out *out = (struct stream_out *)stream;
+    struct audio_device *adev = out->dev;
     int ret = -EINVAL;
 
+    pthread_mutex_lock(&adev->lock);
     pthread_mutex_lock(&out->lock);
+
+    if (out->standby) {
+        ret = start_output_stream(out);
+        if (ret != 0) {
+            pthread_mutex_unlock(&adev->lock);
+            goto exit;
+        }
+        out->standby = false;
+    }
+
+    pthread_mutex_unlock(&adev->lock);
 
     size_t avail;
     if (pcm_get_htimestamp(out->pcm, &avail, timestamp) == 0) {
@@ -861,6 +874,7 @@ static int out_get_presentation_position(const struct audio_stream_out *stream,
         }
     }
 
+exit:
     pthread_mutex_unlock(&out->lock);
 
     return ret;
