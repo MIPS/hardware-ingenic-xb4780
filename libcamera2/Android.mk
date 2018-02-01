@@ -48,6 +48,7 @@ LOCAL_C_INCLUDES += \
 	hardware/ingenic/xb4780/libjzipu \
 	hardware/ingenic/xb4780/libGPU \
 	hardware/ingenic/xb4780/include/media \
+	hardware/ingenic/xb4780/jhead \
 	kernel/drivers/video
 
 LOCAL_STATIC_LIBRARIES := android.hardware.camera.common@1.0-helper
@@ -63,7 +64,7 @@ LOCAL_SHARED_LIBRARIES:= \
 	libdmmu \
 	libdl \
 	libjzipu \
-	libjhead \
+	libjhead.xb4780 \
 	libion \
 	libhardware
 
