@@ -15,13 +15,15 @@ MLOCAL_SRC_FILES := version.c fixed.c bit.c timer.c stream.c frame.c  \
 JZC_CFG = jzconfig.h
 LOCAL_SRC_FILES := $(addprefix $(MPTOP),$(MLOCAL_SRC_FILES)) 
 LOCAL_MODULE := libstagefright_mad
+LOCAL_VENDOR_MODULE := true
 
 LOCAL_CFLAGS := $(PV_CFLAGS) -ffunction-sections  -Wmissing-prototypes -Wundef -Wdisabled-optimization -Wno-pointer-sign -Wdeclaration-after-statement -std=gnu99 -Wall -Wno-switch -Wpointer-arith -Wredundant-decls -O2 -pipe -ffast-math -UNDEBUG -UDEBUG -fno-builtin -DAUDIO_CODEC -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE -DHAVE_CONFIG_H -D__LINUX__  -D_REENTRANT -D_LITTLE_ENDIAN=1 -fomit-frame-pointer -DFPM_DEFAULT -imacros $(JZC_CFG)
 
 
 LOCAL_STATIC_LIBRARIES := 
 
-LOCAL_SHARED_LIBRARIES := 
+LOCAL_SHARED_LIBRARIES := \
+	libutils
 
 LOCAL_C_INCLUDES := \
 	$(LUME_PATH)/libavcodec  \

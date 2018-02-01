@@ -14,9 +14,12 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_SHARED_LIBRARIES:= \
 	liblog \
-	libcutils
+	libcutils \
+	libutils \
+	libhardware
 
 LOCAL_MODULE := libdmmu
+LOCAL_VENDOR_MODULE := true
 LOCAL_MODULE_TAGS := optional
 
 LOCAL_PRELINK_MODULE := false

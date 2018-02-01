@@ -15,6 +15,7 @@ OBJS := $(addprefix $(SUBDIR),$(OBJS))
 LOCAL_SRC_FILES := $(OBJS:.o=.c)
 
 LOCAL_MODULE := libstagefright_ffavutil
+LOCAL_VENDOR_MODULE := true
 
 JZC_CFG := $(LUME_PATH)/jzconfig.h
 LOCAL_CFLAGS := -DHAVE_AV_CONFIG_H -ffunction-sections  -Wmissing-prototypes -Wundef -Wdisabled-optimization -Wno-pointer-sign -Wdeclaration-after-statement -std=gnu99 -Wall -Wno-switch -Wpointer-arith -Wredundant-decls -O2 -pipe -ffast-math -UNDEBUG -UDEBUG -fno-builtin -imacros $(JZC_CFG)

@@ -10,7 +10,6 @@ LOCAL_C_INCLUDES += \
 
 LOCAL_SHARED_LIBRARIES :=               \
         libbinder                       \
-        libmedia                        \
         libutils                        \
         libui                           \
         libcutils                       \
@@ -19,6 +18,7 @@ LOCAL_SHARED_LIBRARIES :=               \
         liblog
 
 LOCAL_MODULE:= libstagefrighthw
+LOCAL_VENDOR_MODULE := true
 
 include $(BUILD_SHARED_LIBRARY)
 

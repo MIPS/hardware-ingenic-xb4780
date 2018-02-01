@@ -37,6 +37,7 @@ LOCAL_SRC_FILES = $(filter-out $(MXU-COMMON-SRC),$(MY_SRC_FILES))
 LOCAL_SRC_FILES += ../../libaf/format.c ../../fmt-conversion.c
 
 LOCAL_MODULE := libstagefright_vlumedecoder
+LOCAL_VENDOR_MODULE := true
 JZC_CFG := $(LUME_PATH)/libjzcommon/com_config.h
 
 LOCAL_CFLAGS := $(PV_CFLAGS) -DHAVE_AV_CONFIG_H -ffunction-sections  -Wmissing-prototypes -Wundef -Wdisabled-optimization -Wno-pointer-sign -Wdeclaration-after-statement -std=gnu99 -Wall -Wno-switch -Wpointer-arith -Wredundant-decls -O2 -pipe -ffast-math -UNDEBUG -UDEBUG -fno-builtin -DVIDEO_CODEC -D__LINUX__ -imacros $(JZC_CFG)
@@ -55,7 +56,8 @@ LOCAL_AFLAGS = $(LOCAL_CFLAGS)
 
 LOCAL_STATIC_LIBRARIES := 
 
-LOCAL_SHARED_LIBRARIES := 
+LOCAL_SHARED_LIBRARIES := \
+	libutils
 
 LOCAL_C_INCLUDES := \
 	$(LUME_PATH)  \

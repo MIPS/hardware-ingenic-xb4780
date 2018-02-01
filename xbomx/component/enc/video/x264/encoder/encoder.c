@@ -23,6 +23,7 @@
  *****************************************************************************/
 
 #include <math.h>
+#include <sys/time.h>
 
 #include "common/common.h"
 #include "common/cpu.h"

@@ -21,8 +21,6 @@
 #include <utils/RefBase.h>
 #include <ui/ANativeObjectBase.h>
 
-#include <media/IMediaPlayerService.h>
-
 
 namespace android {
 

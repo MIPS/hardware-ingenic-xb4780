@@ -29,6 +29,7 @@
 #include "config.h"
 
 #include <inttypes.h>
+#include <sys/time.h>
 
 #include "mpeg2.h"
 #include "attributes.h"

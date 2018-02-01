@@ -18,7 +18,6 @@
 #define HARDWARE_FRAMEBUFFERRENDERER_H_
 
 #include <media/stagefright/MediaBuffer.h>
-#include <media/IMediaPlayerService.h>
 #include <utils/RefBase.h>
 #include <ui/ANativeObjectBase.h>
 #include <sys/ioctl.h>

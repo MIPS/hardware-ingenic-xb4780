@@ -23,6 +23,8 @@
  * @file
  * RV30/40 decoder common data
  */
+#include <sys/time.h>
+
 #include "libavcore/imgutils.h"
 #include "avcodec.h"
 #include "dsputil.h"

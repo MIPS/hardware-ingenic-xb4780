@@ -70,7 +70,6 @@ LOCAL_SHARED_LIBRARIES := \
         libbinder       \
 	libcutils	\
 	libdmmu		\
-        libstagefright \
         libstagefright_omx \
         libutils \
         libui \
@@ -78,6 +77,7 @@ LOCAL_SHARED_LIBRARIES := \
 
 LOCAL_STATIC_LIBRARIES := libOMX_Basecomponent
 LOCAL_MODULE := libstagefright_hard_x264hwenc
+LOCAL_VENDOR_MODULE := true
 LOCAL_MODULE_TAGS := optional
 
 include $(BUILD_SHARED_LIBRARY)

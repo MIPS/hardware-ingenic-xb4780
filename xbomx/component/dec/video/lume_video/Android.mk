@@ -29,6 +29,13 @@ LOCAL_C_INCLUDES := \
 LOCAL_CFLAGS := \
         -DUSE_IPU_THROUGH_MODE $(XBOMX_FLAGS) -g0 -fno-integrated-as -Wa,-mmxu
 
+LOCAL_SHARED_LIBRARIES := \
+        libbinder \
+        libhardware
+
+LOCAL_HEADER_LIBRARIES := \
+        libmedia_headers
+
 LOCAL_MODULE_TAGS := optional
 
 ifdef LUME_VIDEO_MAX_WIDTH
@@ -44,6 +51,7 @@ else
 endif
 
 LOCAL_MODULE := libstagefright_vlume_codec
+LOCAL_VENDOR_MODULE := true
 include $(BUILD_STATIC_LIBRARY)
 
 include $(call all-makefiles-under,$(LOCAL_PATH))

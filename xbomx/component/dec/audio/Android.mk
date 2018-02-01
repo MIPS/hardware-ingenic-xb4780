@@ -7,7 +7,6 @@ LOCAL_SRC_FILES := \
 	HWAudioDec.cpp
 
 LOCAL_SHARED_LIBRARIES := \
-	libstagefright \
 	libstagefright_omx \
 	libstagefright_foundation \
 	libstagefright_hard_vlume \
@@ -42,6 +41,7 @@ LOCAL_STATIC_LIBRARIES += \
 	        libstagefright_jzmpeg2 
 
 LOCAL_MODULE := libstagefright_hard_alume
+LOCAL_VENDOR_MODULE := true
 
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/./lume_audio/include \

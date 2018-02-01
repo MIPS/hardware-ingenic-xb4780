@@ -40,6 +40,7 @@ LOCAL_SRC_FILES += ../../libaf/format.c
 
 
 LOCAL_MODULE := libstagefright_alumedecoder
+LOCAL_VENDOR_MODULE := true
 JZC_CFG := $(LUME_PATH)/libjzcommon/com_config.h
 LOCAL_CFLAGS := $(PV_CFLAGS) -DHAVE_AV_CONFIG_H -ffunction-sections  -Wmissing-prototypes -Wundef -Wdisabled-optimization -Wno-pointer-sign -Wdeclaration-after-statement -std=gnu99 -Wall -Wno-switch -Wpointer-arith -Wredundant-decls -O2 -pipe -ffast-math -UNDEBUG -UDEBUG -fno-builtin -DAUDIO_CODEC -D__LINUX__ -imacros $(JZC_CFG)
 REAL_UNSUPPORTED := $(findstring real,$(LUME_UNSUPPORTED))
@@ -56,7 +57,8 @@ LOCAL_AFLAGS = $(LOCAL_CFLAGS)
 
 LOCAL_STATIC_LIBRARIES := 
 
-LOCAL_SHARED_LIBRARIES := 
+LOCAL_SHARED_LIBRARIES := \
+	libutils
 
 LOCAL_C_INCLUDES := \
 	$(LUME_PATH)  \

@@ -16,13 +16,15 @@ decoder/hufftabs.c decoder/mlt.c decoder/sqvh.c decoder/trigtabs.c ra8lbr_decode
 JZC_CFG = 
 LOCAL_SRC_FILES := $(addprefix $(MPTOP),$(MLOCAL_SRC_FILES)) 
 LOCAL_MODULE := libstagefright_realcook
+LOCAL_VENDOR_MODULE := true
 JZC_CFG := jzconfig.h
 LOCAL_CFLAGS := $(PV_CFLAGS) -ffunction-sections  -Wmissing-prototypes -Wundef -Wdisabled-optimization -Wno-pointer-sign -Wdeclaration-after-statement -std=gnu99 -Wall -Wno-switch -Wpointer-arith -Wredundant-decls -O2 -pipe -ffast-math -UNDEBUG -UDEBUG -fno-builtin -DAUDIO_CODEC -D__LINUX__  -D_LITTLE_ENDIAN=1 -fomit-frame-pointer -imacros $(JZC_CFG)
 
 
 LOCAL_STATIC_LIBRARIES := 
 
-LOCAL_SHARED_LIBRARIES := 
+LOCAL_SHARED_LIBRARIES := \
+	libutils
 
 LOCAL_C_INCLUDES := \
 	$(LUNE_PATH)/libavcodec  \

@@ -33,7 +33,15 @@ LOCAL_CFLAGS := \
 	-fno-integrated-as \
 	-Wa,-mmxu
 
+LOCAL_SHARED_LIBRARIES := \
+	libutils \
+	libbinder
+
+LOCAL_HEADER_LIBRARIES := \
+	libmedia_headers
+
 LOCAL_MODULE := libstagefright_alume_codec
+LOCAL_VENDOR_MODULE := true
 
 include $(BUILD_STATIC_LIBRARY)
 

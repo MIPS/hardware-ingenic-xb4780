@@ -58,6 +58,7 @@ LOCAL_MXU_SRC_FILES =$(sort $(MXU_SRC_FILES_PATH) )
 LOCAL_SRC_FILES = $(filter-out $(LOCAL_MXU_SRC_FILES),$(MY_SRC_FILES_SORT))
 
 LOCAL_MODULE := libstagefright_faad2
+LOCAL_VENDOR_MODULE := true
 JZC_CFG = $(LUME_PATH)/libjzcommon/com_config.h
 
 LOCAL_CFLAGS := $(PV_CFLAGS) -DHAVE_CONFIG_H -DHAVE_AV_CONFIG_H -ffunction-sections  -Wmissing-prototypes -Wundef -Wdisabled-optimization -Wno-pointer-sign -Wdeclaration-after-statement -std=gnu99 -Wall -Wno-switch -Wpointer-arith -Wredundant-decls -O2 -pipe -ffast-math -UNDEBUG -UDEBUG -fno-builtin -D_GNU_SOURCE -DFIXED_POINT -imacros $(JZC_CFG)
@@ -68,7 +69,8 @@ LOCAL_MXU_ASFLAGS = $(LOCAL_CFLAGS)
 
 LOCAL_STATIC_LIBRARIES := 
 
-LOCAL_SHARED_LIBRARIES := 
+LOCAL_SHARED_LIBRARIES := \
+	libutils
 
 LOCAL_C_INCLUDES := \
 	$(LUME_PATH)/libavcodec  \

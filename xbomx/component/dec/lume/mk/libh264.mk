@@ -18,13 +18,15 @@ JZC_CFG = $(LUME_PATH)/libh264/h264_config.h
 JZC_CONFIG = $(LUME_PATH)/jzconfig.h
 LOCAL_SRC_FILES := $(addprefix $(MPTOP),$(MLOCAL_SRC_FILES)) 
 LOCAL_MODULE := libstagefright_vlumeh264
+LOCAL_VENDOR_MODULE := true
 
 LOCAL_CFLAGS := $(PV_CFLAGS) -DHAVE_AV_CONFIG_H -ffunction-sections  -Wmissing-prototypes -Wundef -Wdisabled-optimization -Wno-pointer-sign -Wdeclaration-after-statement -std=gnu99 -Wall -Wno-return-type -Wno-switch -Wpointer-arith -Wredundant-decls -O2 -pipe -ffast-math -UNDEBUG -UDEBUG -fno-builtin -DVIDEO_CODEC -imacros $(JZC_CFG) -imacros $(JZC_CONFIG)
 
 
 LOCAL_STATIC_LIBRARIES := 
 
-LOCAL_SHARED_LIBRARIES := 
+LOCAL_SHARED_LIBRARIES := \
+	libutils
 
 LOCAL_C_INCLUDES := \
 	$(LUME_PATH)/libavcodec  \

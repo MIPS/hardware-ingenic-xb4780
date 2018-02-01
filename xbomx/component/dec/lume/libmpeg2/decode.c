@@ -30,6 +30,7 @@
 #include <string.h>     /* memcmp/memset, try to remove */
 #include <stdlib.h>
 #include <inttypes.h>
+#include <sys/time.h>
 
 #include "mpeg2.h"
 #include "attributes.h"
