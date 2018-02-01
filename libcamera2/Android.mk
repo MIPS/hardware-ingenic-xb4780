@@ -31,19 +31,8 @@ LOCAL_C_INCLUDES += \
 	$(LOCAL_PATH)/include \
 	$(LOCAL_PATH)/skiasupport/include/core \
 	$(LOCAL_PATH)/skiasupport/include/private \
-	external/jpeg \
-	external/jhead \
-	external/neven/FaceRecEm/common/src/b_FDSDK \
-	system/core/include \
 	system/media/camera/include \
-	frameworks/native/include \
-	frameworks/native/include/media/hardware \
-	frameworks/av/include \
-	frameworks/av/services/camera/libcameraservice \
-	frameworks/av/media/libstagefright \
-	frameworks/base/core/jni/android/graphics \
-	frameworks/native/include/media/openmax \
-    hardware/libhardware/include \
+	hardware/libhardware/include \
 	hardware/ingenic/xb4780/libdmmu \
 	hardware/ingenic/xb4780/libjzipu \
 	hardware/ingenic/xb4780/libGPU \
